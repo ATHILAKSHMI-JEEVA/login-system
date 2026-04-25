@@ -8,4 +8,4 @@ const firebaseConfig = {
   measurementId: "G-N9S07Z1469"
 };
 
-window.API_BASE = "https://YOUR_BACKEND_URL_HERE";
+window.API_BASE = "https://login-system-backend-i3b8.onrender.com";
