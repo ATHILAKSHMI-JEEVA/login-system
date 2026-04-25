@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Secure Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #4493f8;
+  --accent-hover: #58a6ff;
+  --input-bg: #0d1117;
+  --success: #3fb950;
+  --error: #f85149;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  color: var(--text);
+  position: relative;
+  overflow: hidden;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(68,147,248,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(68,147,248,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+body::after {
+  content: '';
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(68,147,248,0.06) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.card {
+  width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 0.4s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.brand-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #4493f8, #a371f7);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.brand-text h3 { font-size: 15px; font-weight: 600; }
+.brand-text p  { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5px; }
+.subtitle { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+.social-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 22px; }
+.social-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px; border: 1px solid var(--border); border-radius: 8px;
+  background: transparent; color: var(--text); font-family: var(--sans);
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.social-btn:hover { background: rgba(255,255,255,0.05); border-color: #58a6ff44; }
+.divider {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+  color: var(--muted); font-size: 12px; font-family: var(--mono); letter-spacing: 0.05em;
+}
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.auth-tabs {
+  display: flex; margin-bottom: 18px;
+  background: var(--input-bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 3px;
+}
+.tab-btn {
+  flex: 1; padding: 8px; background: transparent; border: none;
+  border-radius: 6px; color: var(--muted); font-family: var(--sans);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.tab-btn.active { background: var(--card); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 11px; font-family: var(--mono);
+  letter-spacing: 0.08em; color: var(--muted); margin-bottom: 7px; text-transform: uppercase;
+}
+.input-wrap { position: relative; }
+.input-wrap input {
+  width: 100%; padding: 11px 38px 11px 14px; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  font-family: var(--mono); font-size: 14px; outline: none; transition: border-color 0.15s;
+}
+.input-wrap input::placeholder { color: #484f58; }
+.input-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(68,147,248,0.12); }
+.input-icon {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%); color: var(--muted); cursor: pointer; display: flex;
+}
+.forgot { text-align: right; margin-top: -8px; margin-bottom: 14px; }
+.forgot a { font-size: 12px; color: var(--accent); text-decoration: none; font-family: var(--mono); }
+.signin-btn {
+  width: 100%; padding: 13px; background: var(--accent); border: none;
+  border-radius: 8px; color: white; font-family: var(--sans); font-size: 15px;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.signin-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.signin-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.spinner {
+  display: none; width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+  border-radius: 50%; animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.otp-section { display: none; }
+.otp-hint { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-family: var(--mono); }
+.otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+.otp-inputs input {
+  width: 48px; height: 52px; text-align: center; font-size: 20px;
+  font-family: var(--mono); font-weight: 600; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  outline: none; transition: border-color 0.15s;
+}
+.otp-inputs input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(68,147,248,0.12); }
+#msg { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 13px; font-family: var(--mono); display: none; }
+#msg.success { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); color: var(--success); display: block; }
+#msg.error   { background: rgba(248,81,73,0.1);  border: 1px solid rgba(248,81,73,0.3);  color: var(--error);   display: block; }
+.badges {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.badge { display: flex; align-items: center; gap: 5px; font-size: 11px; font-family: var(--mono); color: var(--muted); }
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
+.register-link { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+.register-link a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.resend-row { text-align: center; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.resend-row button { background: none; border: none; color: var(--accent); cursor: pointer; font-family: var(--sans); font-size: 13px; padding: 0; }
+</style>
+</head>
+<body>
+
+<!-- ✅ Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+
+<div class="card">
+  <div class="brand">
+    <div class="brand-icon">🔐</div>
+    <div class="brand-text">
+      <h3>YourApp</h3>
+      <p>Secure Portal</p>
+    </div>
+  </div>
+
+  <h1>Welcome back</h1>
+  <p class="subtitle">Sign in to your account to continue</p>
+
+  <div class="social-row">
+    <!-- ✅ Google Login - Opens popup, shows YOUR Gmail account -->
+    <button class="social-btn" onclick="googleLogin()">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Google
+    </button>
+
+  </div>
+
+  <div class="divider">OR WITH EMAIL</div>
+
+  <div class="auth-tabs">
+    <button class="tab-btn active" onclick="switchTab('password')">Password</button>
+    <button class="tab-btn" onclick="switchTab('otp')">Email OTP</button>
+  </div>
+
+  <!-- Password Section -->
+  <div id="password-section">
+    <div class="field">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <input type="email" id="email" placeholder="you@example.com" />
+        <span class="input-icon">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <input type="password" id="password" placeholder="Min. 8 characters" />
+        <span class="input-icon" onclick="togglePwd()">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+    <div class="forgot"><a href="forgot.html">Forgot password?</a></div>
+    <button class="signin-btn" onclick="emailLogin()" id="login-btn">
+      <span id="login-text">Sign in</span>
+      <div class="spinner" id="login-spinner"></div>
+    </button>
+  </div>
+
+  <!-- OTP Section -->
+  <div class="otp-section" id="otp-section">
+    <div class="field">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <input type="email" id="otp-email" placeholder="you@example.com" />
+      </div>
+    </div>
+    <div id="otp-input-section" style="display:none">
+      <p class="otp-hint">6-digit code sent to your email inbox</p>
+      <div class="otp-inputs">
+        <input maxlength="1" class="otp-digit" />
+        <input maxlength="1" class="otp-digit" />
+        <input maxlength="1" class="otp-digit" />
+        <input maxlength="1" class="otp-digit" />
+        <input maxlength="1" class="otp-digit" />
+        <input maxlength="1" class="otp-digit" />
+      </div>
+      <div class="resend-row">
+        <span>Didn't receive it? </span>
+        <button onclick="sendOtp()">Resend OTP</button>
+      </div>
+    </div>
+    <button class="signin-btn" onclick="otpAction()" id="otp-btn" style="margin-top:8px;">
+      <span id="otp-btn-text">Send OTP</span>
+      <div class="spinner" id="otp-spinner"></div>
+    </button>
+  </div>
+
+  <div id="msg"></div>
+
+  <div class="badges">
+    <div class="badge"><div class="badge-dot"></div> TLS 1.3</div>
+    <div class="badge"><div class="badge-dot"></div> AES-256</div>
+    <div class="badge"><div class="badge-dot"></div> MFA Ready</div>
+  </div>
+
+  <div class="register-link">
+    Don't have an account? <a href="register.html">Create one</a>
+  </div>
+</div>
+
+<script>
+// ✅ Your Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBxkCJeIaxs-4pk_eE7WVJTUKV_MlNXfOs",
+  authDomain: "myloginapp-4a42a.firebaseapp.com",
+  projectId: "myloginapp-4a42a",
+  storageBucket: "myloginapp-4a42a.firebasestorage.app",
+  messagingSenderId: "565116600315",
+  appId: "1:565116600315:web:27755f254f7ec000d5155e",
+  measurementId: "G-N9S07Z1469"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+let otpSent = false;
+
+// ─── TAB SWITCH ───
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tab === 'password') || (i === 1 && tab === 'otp'));
+  });
+  document.getElementById('password-section').style.display = tab === 'password' ? 'block' : 'none';
+  document.getElementById('otp-section').style.display      = tab === 'otp'      ? 'block' : 'none';
+  clearMsg();
+}
+
+// ─── ✅ GOOGLE LOGIN — Opens "Continue with Google" popup showing your Gmail ───
+async function googleLogin() {
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    // Force account selection popup every time
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    showMsg('Connecting to Google...', 'success');
+
+    const result  = await auth.signInWithPopup(provider);
+    const idToken = await result.user.getIdToken();
+    const name    = result.user.displayName;
+    const email   = result.user.email;
+    const avatar  = result.user.photoURL;
+
+    showMsg(`✅ Google verified: ${email} — redirecting...`, 'success');
+
+    // Send token to backend
+    await backendSocialLogin(idToken, name, email, avatar);
+  } catch (err) {
+    if (err.code === 'auth/popup-closed-by-user') {
+      showMsg('Popup closed. Please try again.', 'error');
+    } else {
+      showMsg('Google login failed: ' + err.message, 'error');
+    }
+  }
+}
+
+
+
+// ─── SEND TOKEN TO BACKEND ───
+async function backendSocialLogin(idToken, name, email, avatar) {
+  try {
+    const res  = await fetch('http://localhost:5000/firebase-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+    const data = await res.json();
+    if (data.success) {
+      // Save session info
+      localStorage.setItem('token',  data.token);
+      localStorage.setItem('email',  email  || data.email || '');
+      localStorage.setItem('name',   name   || data.name  || '');
+      localStorage.setItem('avatar', avatar || '');
+      localStorage.setItem('method', 'Google');
+      showMsg(`✅ Welcome ${name}! Redirecting...`, 'success');
+      setTimeout(() => window.location.href = 'home.html', 1000);
+    } else {
+      showMsg(data.message || 'Login failed', 'error');
+    }
+  } catch {
+    showMsg('❌ Server not reachable. Is backend running on port 5000?', 'error');
+  }
+}
+
+// ─── EMAIL + PASSWORD LOGIN ───
+async function emailLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) return showMsg('Enter email and password', 'error');
+
+  setLoading('login-btn', 'login-text', 'login-spinner', true);
+  try {
+    const res  = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.token) {
+      localStorage.setItem('token',  data.token);
+      localStorage.setItem('email',  email);
+      localStorage.setItem('name',   email.split('@')[0]);
+      localStorage.setItem('method', 'Password');
+      showMsg('✅ Login success! Redirecting...', 'success');
+      setTimeout(() => window.location.href = 'home.html', 1000);
+    } else {
+      showMsg(data.message || 'Login failed', 'error');
+    }
+  } catch {
+    showMsg('❌ Server not reachable. Is backend running on port 5000?', 'error');
+  } finally {
+    setLoading('login-btn', 'login-text', 'login-spinner', false, 'Sign in');
+  }
+}
+
+// ─── OTP ───
+let otpEmail = '';
+async function otpAction() {
+  if (!otpSent) await sendOtp(); else await verifyOtp();
+}
+
+async function sendOtp() {
+  const email = document.getElementById('otp-email').value.trim();
+  if (!email) return showMsg('Enter your email', 'error');
+  otpEmail = email;
+  setLoading('otp-btn', 'otp-btn-text', 'otp-spinner', true);
+  try {
+    const res  = await fetch('http://localhost:5000/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.success) {
+      otpSent = true;
+      document.getElementById('otp-input-section').style.display = 'block';
+      document.getElementById('otp-btn-text').textContent = 'Verify OTP';
+      showMsg(`✅ OTP sent to ${email} — check your inbox`, 'success');
+      document.querySelector('.otp-digit').focus();
+    } else {
+      showMsg(data.message, 'error');
+    }
+  } catch {
+    showMsg('❌ Server not reachable. Is backend running?', 'error');
+  } finally {
+    setLoading('otp-btn', 'otp-btn-text', 'otp-spinner', false, otpSent ? 'Verify OTP' : 'Send OTP');
+  }
+}
+
+async function verifyOtp() {
+  const digits = document.querySelectorAll('.otp-digit');
+  const otp    = Array.from(digits).map(d => d.value).join('');
+  if (otp.length < 6) return showMsg('Enter all 6 digits', 'error');
+  setLoading('otp-btn', 'otp-btn-text', 'otp-spinner', true);
+  try {
+    const res  = await fetch('http://localhost:5000/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: otpEmail, otp })
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('token',  data.token);
+      localStorage.setItem('email',  otpEmail);
+      localStorage.setItem('name',   otpEmail.split('@')[0]);
+      localStorage.setItem('method', 'OTP');
+      showMsg('✅ OTP verified! Redirecting...', 'success');
+      setTimeout(() => window.location.href = 'home.html', 900);
+    } else {
+      showMsg(data.message, 'error');
+    }
+  } catch {
+    showMsg('❌ Server not reachable. Is backend running?', 'error');
+  } finally {
+    setLoading('otp-btn', 'otp-btn-text', 'otp-spinner', false, 'Verify OTP');
+  }
+}
+
+// ─── HELPERS ───
+function togglePwd() {
+  const pwd = document.getElementById('password');
+  pwd.type = pwd.type === 'password' ? 'text' : 'password';
+}
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className   = type;
+}
+function clearMsg() {
+  const el = document.getElementById('msg');
+  el.textContent = ''; el.className = '';
+}
+function setLoading(btnId, textId, spinnerId, loading, defaultText) {
+  document.getElementById(btnId).disabled = loading;
+  document.getElementById(textId).style.display    = loading ? 'none'  : 'inline';
+  document.getElementById(spinnerId).style.display = loading ? 'block' : 'none';
+  if (!loading && defaultText) document.getElementById(textId).textContent = defaultText;
+}
+
+// OTP digit auto-advance + paste
+document.querySelectorAll('.otp-digit').forEach((input, idx, inputs) => {
+  input.addEventListener('input', () => {
+    if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && idx > 0) inputs[idx - 1].focus();
+  });
+  input.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+    [...text.slice(0, 6)].forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
+    inputs[Math.min(text.length - 1, 5)].focus();
+  });
+});
+</script>
+</body>
+</html>

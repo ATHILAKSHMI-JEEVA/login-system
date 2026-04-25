@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reset Password</title>
+
+<style>
+body {
+  background:#0d1117;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+  font-family:sans-serif;
+}
+
+.card {
+  width:380px;
+  padding:25px;
+  background:#161b22;
+  border-radius:10px;
+}
+
+input, button {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:6px;
+  border:none;
+}
+
+input {
+  background:#0d1117;
+  border:1px solid #30363d;
+  color:white;
+}
+
+button {
+  background:#4493f8;
+  color:white;
+  cursor:pointer;
+}
+
+.otp-box {
+  display:flex;
+  gap:5px;
+  justify-content:center;
+}
+
+.otp-box input {
+  width:40px;
+  text-align:center;
+}
+
+#msg { margin-top:10px; }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>🔑 Reset Password</h2>
+
+  <input type="email" id="email" placeholder="Enter email">
+
+  <button onclick="sendOtp()">Send OTP</button>
+
+  <div id="otpSection" style="display:none;">
+    <div class="otp-box">
+      <input maxlength="1" class="otp">
+      <input maxlength="1" class="otp">
+      <input maxlength="1" class="otp">
+      <input maxlength="1" class="otp">
+      <input maxlength="1" class="otp">
+      <input maxlength="1" class="otp">
+    </div>
+
+    <input type="password" id="newPassword" placeholder="New password">
+
+    <button onclick="resetPassword()">Reset Password</button>
+  </div>
+
+  <p id="msg"></p>
+</div>
+
+<script>
+const msg = document.getElementById("msg");
+
+// Send OTP
+async function sendOtp() {
+  const email = document.getElementById("email").value;
+
+  const res = await fetch("http://localhost:5000/send-otp", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    msg.innerText = "OTP sent";
+    otpSection.style.display = "block";
+  } else {
+    msg.innerText = data.message;
+  }
+}
+
+// Reset password
+async function resetPassword() {
+  const email = document.getElementById("email").value;
+  const newPassword = document.getElementById("newPassword").value;
+
+  const otp = Array.from(document.querySelectorAll(".otp"))
+    .map(i => i.value).join('');
+
+  const res = await fetch("http://localhost:5000/reset-password", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email, otp, newPassword })
+  });
+
+  const data = await res.json();
+  msg.innerText = data.message;
+}
+</script>
+
+</body>
+</html>
