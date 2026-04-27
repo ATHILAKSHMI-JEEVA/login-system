@@ -11,9 +11,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// ─────────────────────────────────────
-// ✅ MySQL Connection
-// ─────────────────────────────────────
 const db = mysql.createConnection({
   host:     process.env.DB_HOST     || "localhost",
   user:     process.env.DB_USER     || "root",
@@ -26,27 +23,22 @@ db.connect(err => {
   else     console.log("✅ MySQL Connected");
 });
 
-// ─────────────────────────────────────
-// ✅ Firebase Admin SDK
-// ─────────────────────────────────────
+// ✅ Firebase Admin SDK - reads from env variable in production
 try {
-  const serviceAccount = require("./serviceAccountKey.json");
+  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+    : require("./serviceAccountKey.json");
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   console.log("✅ Firebase Admin Ready");
 } catch (e) {
   console.log("⚠️  Firebase Admin not initialized:", e.message);
 }
 
-// In-memory OTP store  { email -> { otp, expiresAt } }
 const otpStore = new Map();
 
-// ─────────────────────────────────────
-// ✅ REGISTER
-// ─────────────────────────────────────
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.json({ message: "All fields required" });
-
   const hash = await bcrypt.hash(password, 10);
   db.query(
     "INSERT INTO users (email, password) VALUES (?, ?)",
@@ -58,9 +50,6 @@ app.post("/register", async (req, res) => {
   );
 });
 
-// ─────────────────────────────────────
-// ✅ EMAIL + PASSWORD LOGIN
-// ─────────────────────────────────────
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
@@ -72,24 +61,14 @@ app.post("/login", (req, res) => {
   });
 });
 
-// ─────────────────────────────────────
-// ✅ GOOGLE / GITHUB FIREBASE LOGIN
-//    → Verifies Firebase idToken
-//    → Returns JWT + user email/name/avatar
-// ─────────────────────────────────────
 app.post("/firebase-login", async (req, res) => {
   const { idToken } = req.body;
   if (!idToken) return res.json({ success: false, message: "No token provided" });
-
   try {
-    // Verify with Firebase Admin
     const decoded = await admin.auth().verifyIdToken(idToken);
     const { email, name, picture, uid } = decoded;
-
-    // Auto-create user in MySQL if not exists
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
       if (err) return res.status(500).json({ success: false, message: "DB error" });
-
       const issueToken = (userId) => {
         const token = jwt.sign(
           { id: userId, email },
@@ -98,9 +77,7 @@ app.post("/firebase-login", async (req, res) => {
         );
         res.json({ success: true, token, email, name, avatar: picture });
       };
-
       if (result.length === 0) {
-        // New user → insert
         db.query(
           "INSERT INTO users (email, password) VALUES (?, ?)",
           [email, "OAUTH_USER"],
@@ -113,31 +90,24 @@ app.post("/firebase-login", async (req, res) => {
         issueToken(result[0].id);
       }
     });
-
   } catch (err) {
     console.error("❌ Firebase verify error:", err.message);
     res.status(401).json({ success: false, message: "Invalid Firebase token: " + err.message });
   }
 });
 
-// ─────────────────────────────────────
-// ✅ SEND OTP  (Nodemailer → Gmail)
-// ─────────────────────────────────────
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.json({ success: false, message: "Email required" });
-
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore.set(email, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
-
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.MAIL_USER || "jathilakshmi2@gmail.com",
-      pass: process.env.MAIL_PASS || "rmhyguxcimphnmew"   // App Password
+      pass: process.env.MAIL_PASS || "rmhyguxcimphnmew"
     }
   });
-
   try {
     await transporter.sendMail({
       from: `"YourApp" <${process.env.MAIL_USER || "jathilakshmi2@gmail.com"}>`,
@@ -145,43 +115,27 @@ app.post("/send-otp", async (req, res) => {
       subject: "Your OTP Code — YourApp",
       html: `
         <div style="font-family:sans-serif;max-width:420px;margin:0 auto;background:#0d1117;color:#e6edf3;border-radius:14px;padding:28px;border:1px solid #30363d;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-            <div style="width:38px;height:38px;background:linear-gradient(135deg,#4493f8,#a371f7);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;">🔐</div>
-            <div>
-              <div style="font-weight:600;font-size:15px;">YourApp</div>
-              <div style="font-size:11px;color:#8b949e;font-family:monospace;">Secure Portal</div>
-            </div>
-          </div>
-          <h2 style="color:#4493f8;margin-bottom:6px;">Your Login OTP</h2>
-          <p style="color:#8b949e;font-size:14px;margin-bottom:20px;">Use this code to sign in. Valid for <strong style="color:#e6edf3;">10 minutes</strong>.</p>
+          <h2 style="color:#4493f8;">Your Login OTP</h2>
           <div style="background:#161b22;padding:24px;text-align:center;border-radius:10px;border:1px solid #30363d;margin-bottom:20px;">
             <span style="font-size:42px;font-weight:700;letter-spacing:14px;font-family:monospace;color:#4493f8;">${otp}</span>
           </div>
-          <p style="color:#8b949e;font-size:12px;font-family:monospace;">🔒 Don't share this code with anyone. YourApp will never ask for your OTP.</p>
+          <p style="color:#8b949e;font-size:12px;">Valid for 10 minutes. Don't share this code.</p>
         </div>
       `
     });
-    console.log("✅ OTP sent to:", email, "→", otp);
     res.json({ success: true, message: "OTP sent" });
   } catch (err) {
-    console.error("❌ Email error:", err.message);
     res.json({ success: false, message: "Email send failed: " + err.message });
   }
 });
 
-// ─────────────────────────────────────
-// ✅ VERIFY OTP
-// ─────────────────────────────────────
 app.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
   const stored = otpStore.get(email);
-
-  if (!stored)                    return res.json({ success: false, message: "No OTP found. Request again." });
+  if (!stored) return res.json({ success: false, message: "No OTP found. Request again." });
   if (Date.now() > stored.expiresAt) { otpStore.delete(email); return res.json({ success: false, message: "OTP expired." }); }
-  if (stored.otp !== otp)         return res.json({ success: false, message: "Wrong OTP." });
-
+  if (stored.otp !== otp) return res.json({ success: false, message: "Wrong OTP." });
   otpStore.delete(email);
-
   db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
     const done = (userId) => {
       const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "1h" });
@@ -195,18 +149,13 @@ app.post("/verify-otp", (req, res) => {
   });
 });
 
-// ─────────────────────────────────────
-// ✅ FORGOT PASSWORD — RESET
-// ─────────────────────────────────────
 app.post("/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
   if (!email || !otp || !newPassword) return res.json({ success: false, message: "All fields required" });
-
   const stored = otpStore.get(email);
-  if (!stored)                     return res.json({ success: false, message: "No OTP found. Request again." });
+  if (!stored) return res.json({ success: false, message: "No OTP found. Request again." });
   if (Date.now() > stored.expiresAt) { otpStore.delete(email); return res.json({ success: false, message: "OTP expired" }); }
-  if (stored.otp !== otp)          return res.json({ success: false, message: "Wrong OTP" });
-
+  if (stored.otp !== otp) return res.json({ success: false, message: "Wrong OTP" });
   const hashed = await bcrypt.hash(newPassword, 10);
   db.query("UPDATE users SET password = ? WHERE email = ?", [hashed, email], (err, result) => {
     if (err || result.affectedRows === 0) return res.json({ success: false, message: "User not found or DB error" });
@@ -215,9 +164,6 @@ app.post("/reset-password", async (req, res) => {
   });
 });
 
-// ─────────────────────────────────────
-// ✅ PROTECTED HOME ROUTE
-// ─────────────────────────────────────
 app.get("/home", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.json({ message: "No token — please login" });
