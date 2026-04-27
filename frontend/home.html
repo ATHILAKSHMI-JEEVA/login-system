@@ -19,7 +19,6 @@
   --sans: 'DM Sans', sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
   background: var(--bg);
   min-height: 100vh;
@@ -29,7 +28,6 @@ body {
   font-family: var(--sans);
   color: var(--text);
 }
-
 .card {
   width: 400px;
   background: var(--card);
@@ -38,21 +36,8 @@ body {
   padding: 36px 30px;
   text-align: center;
 }
-
-.card h2 {
-  font-size: 22px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.card .subtitle {
-  font-size: 13px;
-  color: var(--muted);
-  font-family: var(--mono);
-  margin-bottom: 22px;
-}
-
-/* Google email + avatar row */
+.card h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.card .subtitle { font-size: 13px; color: var(--muted); font-family: var(--mono); margin-bottom: 22px; }
 .user-row {
   display: none;
   align-items: center;
@@ -65,7 +50,6 @@ body {
   text-align: left;
 }
 .user-row.show { display: flex; }
-
 .avatar {
   width: 40px; height: 40px; border-radius: 50%;
   background: linear-gradient(135deg,#4493f8,#a371f7);
@@ -74,11 +58,9 @@ body {
   flex-shrink: 0; overflow: hidden;
 }
 .avatar img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-
 .user-text { flex: 1; overflow: hidden; }
 .user-name  { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-email { font-size: 11px; color: var(--muted); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
 .method-tag {
   font-size: 10px; font-family: var(--mono);
   padding: 2px 8px; border-radius: 20px;
@@ -87,43 +69,23 @@ body {
   border: 1px solid rgba(63,185,80,0.25);
   white-space: nowrap;
 }
-
 .btn {
-  display: block;
-  width: 100%;
-  padding: 13px;
-  border-radius: 8px;
-  font-family: var(--sans);
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  margin-top: 12px;
-  transition: 0.2s;
+  display: block; width: 100%; padding: 13px;
+  border-radius: 8px; font-family: var(--sans);
+  font-size: 15px; font-weight: 500; cursor: pointer;
+  border: none; margin-top: 12px; transition: 0.2s;
 }
-
 .btn-blue { background: #4493f8; color: #fff; }
 .btn-blue:hover { background: #58a6ff; transform: translateY(-1px); }
-
 .btn-red { background: transparent; border: 1.5px solid var(--danger); color: var(--danger); }
 .btn-red:hover { background: rgba(248,81,73,0.08); }
-
-#msg {
-  margin-top: 14px;
-  font-size: 13px;
-  font-family: var(--mono);
-  min-height: 18px;
-  color: var(--success);
-}
+#msg { margin-top: 14px; font-size: 13px; font-family: var(--mono); min-height: 18px; color: var(--success); }
 </style>
 </head>
 <body>
-
 <div class="card">
   <h2>🏠 Dashboard</h2>
   <p class="subtitle">Secure data from backend</p>
-
-  <!-- Shows Google photo + email after login -->
   <div class="user-row" id="user-row">
     <div class="avatar" id="avatar">?</div>
     <div class="user-text">
@@ -132,36 +94,31 @@ body {
     </div>
     <span class="method-tag" id="mtag">Verified</span>
   </div>
-
   <button class="btn btn-blue" onclick="getData()">Get Data</button>
   <button class="btn btn-red"  onclick="logout()">Logout</button>
-
   <p id="msg"></p>
 </div>
 
 <script>
+const API = "https://login-system-backend-i3b8.onrender.com";
+
 (function init() {
   const token  = localStorage.getItem('token');
   const email  = localStorage.getItem('email');
   const name   = localStorage.getItem('name');
   const avatar = localStorage.getItem('avatar');
   const method = localStorage.getItem('method') || '';
-
   if (!token) { window.location.href = 'index.html'; return; }
-
   if (email) {
     document.getElementById('user-row').classList.add('show');
-
     const av = document.getElementById('avatar');
     if (avatar) {
       av.innerHTML = `<img src="${avatar}" alt="av" onerror="this.parentElement.textContent='${(name||email).charAt(0).toUpperCase()}'">`;
     } else {
       av.textContent = (name || email).charAt(0).toUpperCase();
     }
-
     document.getElementById('uname').textContent  = name  || email.split('@')[0];
     document.getElementById('uemail').textContent = email;
-
     const tags = { Google:'🔵 Google', OTP:'📧 OTP', Password:'🔒 Password' };
     document.getElementById('mtag').textContent = tags[method] || '✅ Verified';
   }
@@ -173,13 +130,13 @@ async function getData() {
   msg.style.color = 'var(--muted)';
   msg.textContent = '⏳ Loading...';
   try {
-    const res  = await fetch('http://localhost:5000/home', { headers: { authorization: token } });
+    const res  = await fetch(`${API}/home`, { headers: { authorization: token } });
     const data = await res.json();
     msg.style.color = 'var(--success)';
     msg.textContent = data.message;
   } catch {
     msg.style.color = 'var(--danger)';
-    msg.textContent = '❌ Server not reachable on port 5000';
+    msg.textContent = '❌ Server not reachable';
   }
 }
 
