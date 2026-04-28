@@ -500,7 +500,7 @@ body {
 </div>
 
 <script>
-const SERVER   = "http://localhost:5000";
+const SERVER   = "login-system-backend-i3b8.onrender.com";
 const token    = localStorage.getItem("token");
 const myEmail  = localStorage.getItem("email");
 
@@ -514,7 +514,7 @@ document.getElementById("topbar-avatar").textContent = myEmail ? myEmail[0].toUp
 document.getElementById("topbar-email").textContent  = myEmail || "";
 
 // Socket
-const socket = io("http://localhost:5000", {
+const socket = io("login-system-backend-i3b8.onrender.com", {
   transports: ["websocket", "polling"]
 });
 socket.emit("join", myEmail);
