@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard</title>
+<title>Dashboard — YourApp</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -13,6 +13,7 @@
   --text: #e6edf3;
   --muted: #8b949e;
   --accent: #4493f8;
+  --accent-hover: #58a6ff;
   --danger: #f85149;
   --success: #3fb950;
   --mono: 'IBM Plex Mono', monospace;
@@ -22,128 +23,452 @@
 body {
   background: var(--bg);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-family: var(--sans);
   color: var(--text);
 }
-.card {
-  width: 400px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 36px 30px;
-  text-align: center;
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(68,147,248,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(68,147,248,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
 }
-.card h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
-.card .subtitle { font-size: 13px; color: var(--muted); font-family: var(--mono); margin-bottom: 22px; }
-.user-row {
-  display: none;
-  align-items: center;
-  gap: 12px;
+
+/* ── NAVBAR ── */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(22,27,34,0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  padding: 0 32px; height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 100;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; }
+.nav-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #4493f8, #a371f7);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.nav-brand-name { font-weight: 600; font-size: 16px; }
+
+.nav-right { display: flex; align-items: center; gap: 12px; }
+
+/* Google user chip */
+.user-chip {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 14px 6px 6px;
   background: rgba(68,147,248,0.07);
-  border: 1px solid rgba(68,147,248,0.18);
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 20px;
-  text-align: left;
+  border: 1px solid rgba(68,147,248,0.2);
+  border-radius: 50px;
 }
-.user-row.show { display: flex; }
-.avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: linear-gradient(135deg,#4493f8,#a371f7);
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; display: block;
+  background: linear-gradient(135deg, #4493f8, #a371f7);
+  font-size: 13px; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
-  font-size: 17px; font-weight: 700; color: #fff;
-  flex-shrink: 0; overflow: hidden;
+  color: white;
 }
-.avatar img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-.user-text { flex: 1; overflow: hidden; }
-.user-name  { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-email { font-size: 11px; color: var(--muted); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.method-tag {
-  font-size: 10px; font-family: var(--mono);
-  padding: 2px 8px; border-radius: 20px;
-  background: rgba(63,185,80,0.1);
-  color: var(--success);
-  border: 1px solid rgba(63,185,80,0.25);
-  white-space: nowrap;
+.user-avatar img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.user-info { display: flex; flex-direction: column; line-height: 1.2; }
+.user-name  { font-size: 13px; font-weight: 600; }
+.user-email { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success); box-shadow: 0 0 6px var(--success);
 }
+
+.logout-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid rgba(248,81,73,0.35);
+  border-radius: 8px; color: var(--danger);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+}
+.logout-btn:hover { background: rgba(248,81,73,0.1); border-color: var(--danger); }
+
+/* ── BODY ── */
+.dash-body {
+  padding: 90px 32px 40px;
+  max-width: 1100px; margin: 0 auto;
+}
+
+/* greeting */
+.greeting { margin-bottom: 32px; animation: fadeUp 0.5s ease; }
+.greeting h2 { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+.greeting p  { font-size: 13px; color: var(--muted); font-family: var(--mono); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* method badge */
+.method-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-family: var(--mono);
+  margin-left: 10px; vertical-align: middle;
+}
+.method-google  { background: rgba(66,133,244,0.12); color: #4285F4; border: 1px solid rgba(66,133,244,0.25); }
+.method-otp     { background: rgba(63,185,80,0.12);  color: var(--success); border: 1px solid rgba(63,185,80,0.25); }
+.method-password{ background: rgba(68,147,248,0.12); color: var(--accent);  border: 1px solid rgba(68,147,248,0.25); }
+
+/* stats */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 16px; margin-bottom: 28px;
+  animation: fadeUp 0.5s ease 0.1s both;
+}
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px; transition: border-color 0.2s, transform 0.2s;
+}
+.stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.stat-label { font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.stat-value { font-size: 28px; font-weight: 600; }
+.stat-sub   { font-size: 12px; color: var(--success); font-family: var(--mono); margin-top: 4px; }
+
+/* panels */
+.content-grid {
+  display: grid; grid-template-columns: 2fr 1fr;
+  gap: 20px; animation: fadeUp 0.5s ease 0.2s both;
+}
+.panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+}
+.panel-title { font-size: 14px; font-weight: 600; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* activity */
+.activity-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid rgba(48,54,61,0.7);
+}
+.activity-item:last-child { border-bottom: none; }
+.act-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.act-blue   { background: rgba(68,147,248,0.12); }
+.act-green  { background: rgba(63,185,80,0.12); }
+.act-purple { background: rgba(163,113,247,0.12); }
+.act-orange { background: rgba(210,153,34,0.12); }
+.act-info { flex: 1; }
+.act-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.act-time  { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.act-badge {
+  padding: 3px 9px; border-radius: 5px;
+  font-size: 10px; font-family: var(--mono); white-space: nowrap;
+}
+.badge-ok  { background: rgba(63,185,80,0.1);  color: var(--success); }
+.badge-new { background: rgba(68,147,248,0.1); color: var(--accent); }
+
+/* session info */
+.info-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid rgba(48,54,61,0.7);
+}
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.info-value { font-size: 12px; font-family: var(--mono); }
+.pill {
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-family: var(--mono);
+}
+.pill-green  { background: rgba(63,185,80,0.12); color: var(--success); border: 1px solid rgba(63,185,80,0.2); }
+.pill-blue   { background: rgba(68,147,248,0.12); color: var(--accent);  border: 1px solid rgba(68,147,248,0.2); }
+.pill-purple { background: rgba(163,113,247,0.12); color: #a371f7;       border: 1px solid rgba(163,113,247,0.2); }
+
+/* get data button */
+.action-row { margin-top: 24px; display: flex; gap: 10px; }
 .btn {
-  display: block; width: 100%; padding: 13px;
-  border-radius: 8px; font-family: var(--sans);
-  font-size: 15px; font-weight: 500; cursor: pointer;
-  border: none; margin-top: 12px; transition: 0.2s;
+  padding: 11px 20px; border-radius: 8px; border: none;
+  font-family: var(--sans); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
 }
-.btn-blue { background: #4493f8; color: #fff; }
-.btn-blue:hover { background: #58a6ff; transform: translateY(-1px); }
-.btn-red { background: transparent; border: 1.5px solid var(--danger); color: var(--danger); }
-.btn-red:hover { background: rgba(248,81,73,0.08); }
-#msg { margin-top: 14px; font-size: 13px; font-family: var(--mono); min-height: 18px; color: var(--success); }
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.data-result {
+  margin-top: 14px; padding: 12px 16px;
+  background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2);
+  border-radius: 8px; font-size: 13px; font-family: var(--mono);
+  color: var(--success); display: none;
+}
+
+
+/* chat button */
+.btn-chat {
+  background: linear-gradient(135deg, #06d6a0, #3b82f6);
+  color: white;
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none;
+  padding: 11px 20px; border-radius: 8px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  transition: all 0.2s; border: none; cursor: pointer;
+}
+.btn-chat:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 28px; right: 28px;
+  background: var(--card); border: 1px solid rgba(63,185,80,0.4);
+  border-radius: 12px; padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; font-family: var(--mono); z-index: 200;
+  animation: toastIn 0.4s ease;
+}
+@keyframes toastIn { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:translateY(0); } }
+.toast-icon { font-size: 20px; }
+
+/* responsive */
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+  .content-grid { grid-template-columns: 1fr; }
+  .navbar { padding: 0 16px; }
+  .dash-body { padding: 80px 16px 32px; }
+  .user-email { display: none; }
+}
 </style>
 </head>
 <body>
-<div class="card">
-  <h2>🏠 Dashboard</h2>
-  <p class="subtitle">Secure data from backend</p>
-  <div class="user-row" id="user-row">
-    <div class="avatar" id="avatar">?</div>
-    <div class="user-text">
-      <div class="user-name"  id="uname">—</div>
-      <div class="user-email" id="uemail">—</div>
-    </div>
-    <span class="method-tag" id="mtag">Verified</span>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-icon">🔐</div>
+    <span class="nav-brand-name">YourApp</span>
   </div>
-  <button class="btn btn-blue" onclick="getData()">Get Data</button>
-  <button class="btn btn-red"  onclick="logout()">Logout</button>
-  <p id="msg"></p>
+  <div class="nav-right">
+    <!-- User chip — shows Google avatar + email -->
+    <div class="user-chip">
+      <div class="user-avatar" id="nav-avatar">?</div>
+      <div class="user-info">
+        <span class="user-name"  id="nav-name">Loading...</span>
+        <span class="user-email" id="nav-email">—</span>
+      </div>
+      <div class="status-dot"></div>
+    </div>
+    <a href="chat.html" style="padding:8px 16px;background:rgba(6,214,160,0.12);border:1px solid rgba(6,214,160,0.3);border-radius:8px;color:#06d6a0;font-size:13px;font-weight:600;text-decoration:none;transition:all 0.2s;">💬 Chat</a>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- DASHBOARD BODY -->
+<div class="dash-body">
+
+  <div class="greeting">
+    <h2>🏠 Dashboard <span class="method-badge method-google" id="method-badge">Google</span></h2>
+    <p id="greeting-sub">Authenticated successfully · Session active</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Sessions Today</div>
+      <div class="stat-value">1</div>
+      <div class="stat-sub">↑ Just logged in</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Auth Method</div>
+      <div class="stat-value" style="font-size:18px;" id="stat-method">—</div>
+      <div class="stat-sub">Verified ✓</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Security Score</div>
+      <div class="stat-value">98<span style="font-size:14px;color:var(--muted)">/100</span></div>
+      <div class="stat-sub">Excellent</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Token Expires</div>
+      <div class="stat-value" style="font-size:18px;">1h</div>
+      <div class="stat-sub">Auto-refresh</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content-grid">
+    <!-- Activity -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div> Recent Activity</div>
+
+      <div class="activity-item">
+        <div class="act-icon act-green">✅</div>
+        <div class="act-info">
+          <div class="act-title">Login successful</div>
+          <div class="act-time" id="login-time">just now</div>
+        </div>
+        <span class="act-badge badge-ok">Success</span>
+      </div>
+
+      <div class="activity-item" id="auth-method-row">
+        <div class="act-icon act-blue" id="act-method-icon">📧</div>
+        <div class="act-info">
+          <div class="act-title" id="act-method-title">Authentication verified</div>
+          <div class="act-time"  id="act-method-sub">—</div>
+        </div>
+        <span class="act-badge badge-ok">Verified</span>
+      </div>
+
+      <div class="activity-item">
+        <div class="act-icon act-purple">🔑</div>
+        <div class="act-info">
+          <div class="act-title">JWT token issued</div>
+          <div class="act-time">Session token created · 1h validity</div>
+        </div>
+        <span class="act-badge badge-new">Active</span>
+      </div>
+
+      <div class="activity-item">
+        <div class="act-icon act-orange">🛡️</div>
+        <div class="act-info">
+          <div class="act-title">Security check passed</div>
+          <div class="act-time">AES-256 · TLS 1.3</div>
+        </div>
+        <span class="act-badge badge-ok">OK</span>
+      </div>
+
+      <!-- Get Data -->
+      <div class="action-row">
+        <button class="btn btn-primary" onclick="loadSecureData()">Get Secure Data</button>
+        <a class="btn-chat" href="chat.html">💬 Open Chat</a>
+      </div>
+      <div class="data-result" id="data-result"></div>
+    </div>
+
+    <!-- Session info -->
+    <div class="panel">
+      <div class="panel-title"><div class="dot"></div> Session Info</div>
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="pill pill-green">● Active</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Method</span>
+        <span class="pill pill-purple" id="info-method">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Account</span>
+        <span class="info-value" id="info-email" style="font-size:11px;word-break:break-all;">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Encryption</span>
+        <span class="info-value">AES-256</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Protocol</span>
+        <span class="info-value">TLS 1.3</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">MFA</span>
+        <span class="pill pill-green">Enabled</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none">
+  <span class="toast-icon">🎉</span>
+  <span id="toast-msg">Welcome!</span>
 </div>
 
 <script>
-const API = "https://login-system-backend-i3b8.onrender.com";
-
-(function init() {
+// ── LOAD SESSION DATA ──
+function loadSession() {
   const token  = localStorage.getItem('token');
-  const email  = localStorage.getItem('email');
-  const name   = localStorage.getItem('name');
-  const avatar = localStorage.getItem('avatar');
-  const method = localStorage.getItem('method') || '';
-  if (!token) { window.location.href = 'index.html'; return; }
-  if (email) {
-    document.getElementById('user-row').classList.add('show');
-    const av = document.getElementById('avatar');
-    if (avatar) {
-      av.innerHTML = `<img src="${avatar}" alt="av" onerror="this.parentElement.textContent='${(name||email).charAt(0).toUpperCase()}'">`;
-    } else {
-      av.textContent = (name || email).charAt(0).toUpperCase();
-    }
-    document.getElementById('uname').textContent  = name  || email.split('@')[0];
-    document.getElementById('uemail').textContent = email;
-    const tags = { Google:'🔵 Google', OTP:'📧 OTP', Password:'🔒 Password' };
-    document.getElementById('mtag').textContent = tags[method] || '✅ Verified';
-  }
-})();
+  const email  = localStorage.getItem('email')  || 'user@example.com';
+  const name   = localStorage.getItem('name')   || email.split('@')[0];
+  const avatar = localStorage.getItem('avatar') || '';
+  const method = localStorage.getItem('method') || 'Unknown';
 
-async function getData() {
-  const token = localStorage.getItem('token');
-  const msg   = document.getElementById('msg');
-  msg.style.color = 'var(--muted)';
-  msg.textContent = '⏳ Loading...';
+  // Guard: no token → redirect
+  if (!token) { window.location.href = 'index.html'; return; }
+
+  // ── Navbar avatar ──
+  const navAvatar = document.getElementById('nav-avatar');
+  if (avatar) {
+    navAvatar.innerHTML = `<img src="${avatar}" alt="avatar" onerror="this.style.display='none'">`;
+  } else {
+    navAvatar.textContent = name.charAt(0).toUpperCase();
+  }
+  document.getElementById('nav-name').textContent  = name;
+  document.getElementById('nav-email').textContent = email;
+
+  // ── Stats ──
+  document.getElementById('stat-method').textContent = method === 'Google' ? '🔵 Google' : method === 'OTP' ? '📧 OTP' : '🔒 Password';
+
+  // ── Method badge ──
+  const badge = document.getElementById('method-badge');
+  if (method === 'Google')   { badge.className = 'method-badge method-google';   badge.textContent = '🔵 Google OAuth'; }
+  if (method === 'OTP')      { badge.className = 'method-badge method-otp';      badge.textContent = '📧 Email OTP'; }
+  if (method === 'Password') { badge.className = 'method-badge method-password'; badge.textContent = '🔒 Password'; }
+
+  // ── Greeting ──
+  document.getElementById('greeting-sub').textContent = `Authenticated via ${method} · Welcome, ${name} · Session active`;
+
+  // ── Activity row ──
+  const methodMap = {
+    Google:   { icon: '🔵', title: 'Google OAuth verified', sub: `Account: ${email}` },
+    OTP:      { icon: '📧', title: 'Email OTP verified',    sub: `6-digit code · ${email}` },
+    Password: { icon: '🔒', title: 'Password authenticated', sub: `Email: ${email}` },
+  };
+  const m = methodMap[method] || methodMap.Password;
+  document.getElementById('act-method-icon').textContent  = m.icon;
+  document.getElementById('act-method-title').textContent = m.title;
+  document.getElementById('act-method-sub').textContent   = m.sub;
+
+  // ── Info panel ──
+  const methodLabel = { Google: 'Google OAuth', OTP: 'Email OTP', Password: 'Email + Password' };
+  document.getElementById('info-method').textContent = methodLabel[method] || method;
+  document.getElementById('info-email').textContent  = email;
+
+  // ── Login time ──
+  document.getElementById('login-time').textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+  // ── Toast ──
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = `Welcome back, ${name}! Logged in via ${method}.`;
+  toast.style.display = 'flex';
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.style.display = 'none', 500); }, 4000);
+}
+
+// ── GET SECURE DATA FROM BACKEND ──
+async function loadSecureData() {
+  const token  = localStorage.getItem('token');
+  const result = document.getElementById('data-result');
+  result.style.display = 'block';
+  result.textContent   = '⏳ Fetching secure data...';
   try {
-    const res  = await fetch(`${API}/home`, { headers: { authorization: token } });
+    const res  = await fetch('http://localhost:5000/home', { headers: { authorization: token } });
     const data = await res.json();
-    msg.style.color = 'var(--success)';
-    msg.textContent = data.message;
+    result.textContent = '✅ ' + data.message;
   } catch {
-    msg.style.color = 'var(--danger)';
-    msg.textContent = '❌ Server not reachable';
+    result.textContent = '❌ Backend not reachable on port 5000';
+    result.style.color = 'var(--danger)';
   }
 }
 
+// ── LOGOUT ──
 function logout() {
-  ['token','email','name','avatar','method'].forEach(k => localStorage.removeItem(k));
+  localStorage.removeItem('token');
+  localStorage.removeItem('email');
+  localStorage.removeItem('name');
+  localStorage.removeItem('avatar');
+  localStorage.removeItem('method');
   window.location.href = 'index.html';
 }
+
+// Init
+loadSession();
 </script>
 </body>
 </html>
