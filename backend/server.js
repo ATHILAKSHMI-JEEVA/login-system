@@ -7,6 +7,9 @@ const nodemailer = require("nodemailer");
 const admin      = require("firebase-admin");
 const http       = require("http");
 const { Server } = require("socket.io");
+const multer     = require("multer");
+const path       = require("path");
+const fs         = require("fs");
 require("dotenv").config();
 
 const app    = express();
@@ -16,85 +19,92 @@ const io     = new Server(server, { cors: { origin: "*" } });
 app.use(express.json());
 app.use(cors());
 
-// ─────────────────────────────────────
-// ✅ MySQL Connection
-// ─────────────────────────────────────
+// ─── Uploads folder ───
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+app.use("/uploads", express.static(uploadsDir));
+
+// ─── Serve frontend ───
+const frontendDir = path.join(__dirname, "../frontend");
+app.use(express.static(frontendDir));
+
+// ─── Multer config ───
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename:    (req, file, cb) => {
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e6);
+    cb(null, unique + path.extname(file.originalname));
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
+
+// ─── MySQL ───
 const db = mysql.createConnection({
   host:     process.env.DB_HOST     || "localhost",
-  port:     process.env.DB_PORT     || 3306,
   user:     process.env.DB_USER     || "root",
   password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME     || "logindb",
-  ssl: { rejectUnauthorized: false }
+  database: process.env.DB_NAME     || "logindb"
 });
 db.connect(err => {
   if (err) console.log("❌ MySQL Error:", err.message);
   else     console.log("✅ MySQL Connected");
 });
 
-// ─────────────────────────────────────
-// ✅ Create messages table if not exists
-// ─────────────────────────────────────
+// ─── Tables ───
 db.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id         INT AUTO_INCREMENT PRIMARY KEY,
     sender     VARCHAR(255) NOT NULL,
     receiver   VARCHAR(255) NOT NULL,
-    message    TEXT NOT NULL,
+    message    TEXT,
+    type       VARCHAR(20) DEFAULT 'text',
+    file_url   VARCHAR(500),
+    file_name  VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`, (err) => {
+`, err => {
   if (err) console.log("❌ Table error:", err.message);
   else     console.log("✅ Messages table ready");
 });
 
-// ─────────────────────────────────────
-// ✅ Firebase Admin SDK
-// ─────────────────────────────────────
+// ─── Firebase ───
 try {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  const serviceAccount = require("./serviceAccountKey.json");
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   console.log("✅ Firebase Admin Ready");
 } catch (e) {
-  console.log("⚠️  Firebase Admin not initialized:", e.message);
+  console.log("⚠️  Firebase not initialized:", e.message);
 }
 
 const otpStore = new Map();
 
-// ─────────────────────────────────────
-// ✅ REGISTER
-// ─────────────────────────────────────
+// ─── REGISTER ───
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.json({ message: "All fields required" });
   const hash = await bcrypt.hash(password, 10);
-  db.query(
-    "INSERT INTO users (email, password) VALUES (?, ?)",
-    [email, hash],
-    (err) => {
-      if (err) return res.json({ message: "User already exists" });
-      res.json({ message: "Registered successfully" });
-    }
-  );
+  db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, hash], err => {
+    if (err) return res.json({ message: "User already exists" });
+    res.json({ message: "Registered successfully" });
+  });
 });
 
-// ─────────────────────────────────────
-// ✅ LOGIN
-// ─────────────────────────────────────
+// ─── LOGIN ───
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
     if (!result || result.length === 0) return res.json({ message: "User not found" });
     const match = await bcrypt.compare(password, result[0].password);
     if (!match) return res.json({ message: "Wrong password" });
-    const token = jwt.sign({ id: result[0].id, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "1h" });
+    const token = jwt.sign({ id: result[0].id, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
     res.json({ message: "Login success", token });
   });
 });
 
-// ─────────────────────────────────────
-// ✅ FIREBASE LOGIN
-// ─────────────────────────────────────
+// ─── FIREBASE LOGIN ───
 app.post("/firebase-login", async (req, res) => {
   const { idToken } = req.body;
   if (!idToken) return res.json({ success: false, message: "No token provided" });
@@ -104,7 +114,7 @@ app.post("/firebase-login", async (req, res) => {
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
       if (err) return res.status(500).json({ success: false, message: "DB error" });
       const issueToken = (userId) => {
-        const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "1h" });
+        const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
         res.json({ success: true, token, email, name, avatar: picture });
       };
       if (result.length === 0) {
@@ -121,9 +131,7 @@ app.post("/firebase-login", async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────
-// ✅ SEND OTP
-// ─────────────────────────────────────
+// ─── SEND OTP ───
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.json({ success: false, message: "Email required" });
@@ -146,9 +154,7 @@ app.post("/send-otp", async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────
-// ✅ VERIFY OTP
-// ─────────────────────────────────────
+// ─── VERIFY OTP ───
 app.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
   const stored = otpStore.get(email);
@@ -158,7 +164,7 @@ app.post("/verify-otp", (req, res) => {
   otpStore.delete(email);
   db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
     const done = (userId) => {
-      const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "1h" });
+      const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
       res.json({ success: true, message: "OTP Verified", token });
     };
     if (!result || result.length === 0) {
@@ -169,9 +175,7 @@ app.post("/verify-otp", (req, res) => {
   });
 });
 
-// ─────────────────────────────────────
-// ✅ RESET PASSWORD
-// ─────────────────────────────────────
+// ─── RESET PASSWORD ───
 app.post("/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
   if (!email || !otp || !newPassword) return res.json({ success: false, message: "All fields required" });
@@ -187,26 +191,15 @@ app.post("/reset-password", async (req, res) => {
   });
 });
 
-// ─────────────────────────────────────
-// ✅ GET ALL USERS (for user list)
-// ─────────────────────────────────────
+// ─── GET ALL USERS ───
 app.get("/users", (req, res) => {
-  const token = req.headers["authorization"];
-  if (!token) return res.json({ success: false, message: "No token" });
-  try {
-    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
-    db.query("SELECT email FROM users", (err, result) => {
-      if (err) return res.json({ success: false });
-      res.json({ success: true, users: result.map(r => r.email) });
-    });
-  } catch {
-    res.status(401).json({ success: false });
-  }
+  db.query("SELECT email FROM users", (err, result) => {
+    if (err) return res.json({ success: false });
+    res.json({ success: true, users: result.map(r => r.email) });
+  });
 });
 
-// ─────────────────────────────────────
-// ✅ GET CHAT HISTORY between two users
-// ─────────────────────────────────────
+// ─── GET CHAT HISTORY ───
 app.get("/messages/:user1/:user2", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.json({ success: false });
@@ -223,66 +216,76 @@ app.get("/messages/:user1/:user2", (req, res) => {
         res.json({ success: true, messages: result });
       }
     );
-  } catch {
-    res.status(401).json({ success: false });
-  }
+  } catch { res.status(401).json({ success: false }); }
 });
 
-// ─────────────────────────────────────
-// ✅ PROTECTED HOME ROUTE
-// ─────────────────────────────────────
+// ─── FILE UPLOAD ───
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) return res.json({ success: false, message: "No file" });
+  const fileUrl  = `http://localhost:5000/uploads/${req.file.filename}`;
+  const fileName = req.file.originalname;
+  const mimeType = req.file.mimetype;
+
+  let type = "file";
+  if (mimeType.startsWith("image/")) type = "image";
+  else if (mimeType.startsWith("video/")) type = "video";
+  else if (mimeType.startsWith("audio/")) type = "audio";
+
+  res.json({ success: true, fileUrl, fileName, type });
+});
+
+// ─── PROTECTED HOME ───
 app.get("/home", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.json({ message: "No token — please login" });
   try {
     const user = jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
     res.json({ message: `✅ Secure data loaded! User ID: ${user.id} | Email: ${user.email}` });
-  } catch {
-    res.status(401).json({ message: "Invalid or expired token" });
-  }
+  } catch { res.status(401).json({ message: "Invalid or expired token" }); }
 });
 
-// ─────────────────────────────────────
-// ✅ SOCKET.IO — Real-time Private Chat
-// ─────────────────────────────────────
-const onlineUsers = new Map(); // email -> socketId
+// ─── SOCKET.IO ───
+const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
   console.log("🔌 Socket connected:", socket.id);
 
-  // User joins with their email
   socket.on("join", (email) => {
     socket.userEmail = email;
     onlineUsers.set(email, socket.id);
-    // Broadcast updated online list to everyone
     io.emit("online-users", Array.from(onlineUsers.keys()));
     console.log("👤 Joined:", email);
   });
 
-  // Private message
-  socket.on("private-message", ({ to, from, message }) => {
-    // Save to DB
-    db.query(
-      "INSERT INTO messages (sender, receiver, message) VALUES (?, ?, ?)",
-      [from, to, message]
-    );
-
-    // Send to receiver if online
+  socket.on("typing", ({ to, from }) => {
     const receiverSocketId = onlineUsers.get(to);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("private-message", { from, message, time: new Date().toISOString() });
-    }
-
-    // Echo back to sender too
-    socket.emit("private-message-sent", { to, message, time: new Date().toISOString() });
+    if (receiverSocketId) io.to(receiverSocketId).emit("typing", { from });
   });
 
-  // Disconnect
+  socket.on("stop-typing", ({ to, from }) => {
+    const receiverSocketId = onlineUsers.get(to);
+    if (receiverSocketId) io.to(receiverSocketId).emit("stop-typing", { from });
+  });
+
+  socket.on("private-message", ({ to, from, message, type, fileUrl, fileName }) => {
+    // Save to DB
+    db.query(
+      "INSERT INTO messages (sender, receiver, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
+      [from, to, message || "", type || "text", fileUrl || null, fileName || null]
+    );
+    // Send to receiver
+    const receiverSocketId = onlineUsers.get(to);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("private-message", {
+        from, message, type, fileUrl, fileName,
+        time: new Date().toISOString()
+      });
+    }
+  });
+
   socket.on("disconnect", () => {
     if (socket.userEmail) {
       io.emit("user-last-seen", { email: socket.userEmail, time: new Date().toISOString() });
-    }
-    if (socket.userEmail) {
       onlineUsers.delete(socket.userEmail);
       io.emit("online-users", Array.from(onlineUsers.keys()));
       console.log("❌ Disconnected:", socket.userEmail);
