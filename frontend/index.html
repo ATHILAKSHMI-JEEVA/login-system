@@ -160,11 +160,10 @@ h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5
 .resend-row { text-align: center; font-size: 13px; color: var(--muted); margin-top: 8px; }
 .resend-row button { background: none; border: none; color: var(--accent); cursor: pointer; font-family: var(--sans); font-size: 13px; padding: 0; }
 </style>
-<script src="config.js"></script>
 </head>
 <body>
 
-<!-- Firebase SDK -->
+<!-- ✅ Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
 
@@ -181,6 +180,7 @@ h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5
   <p class="subtitle">Sign in to your account to continue</p>
 
   <div class="social-row">
+    <!-- ✅ Google Login - Opens popup, shows YOUR Gmail account -->
     <button class="social-btn" onclick="googleLogin()">
       <svg width="18" height="18" viewBox="0 0 24 24">
         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -190,6 +190,7 @@ h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5
       </svg>
       Google
     </button>
+
   </div>
 
   <div class="divider">OR WITH EMAIL</div>
@@ -274,9 +275,9 @@ h1 { font-size: 26px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5
 </div>
 
 <script>
-// ✅ Firebase Config
+// ✅ Your Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyDbWDwh20LSMDmXTmQ-eD-VXKQOhSMFgJY",
+  apiKey: "AIzaSyBxkCJeIaxs-4pk_eE7WVJTUKV_MlNXfOs",
   authDomain: "myloginapp-4a42a.firebaseapp.com",
   projectId: "myloginapp-4a42a",
   storageBucket: "myloginapp-4a42a.firebasestorage.app",
@@ -285,15 +286,12 @@ const firebaseConfig = {
   measurementId: "G-N9S07Z1469"
 };
 
-// ✅ Initialize Firebase FIRST, then get auth
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-const API_BASE = "https://login-system-backend-i3b8.onrender.com";
-
 let otpSent = false;
 
-// TAB SWITCH
+// ─── TAB SWITCH ───
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach((b, i) => {
     b.classList.toggle('active', (i === 0 && tab === 'password') || (i === 1 && tab === 'otp'));
@@ -303,18 +301,24 @@ function switchTab(tab) {
   clearMsg();
 }
 
-// GOOGLE LOGIN
+// ─── ✅ GOOGLE LOGIN — Opens "Continue with Google" popup showing your Gmail ───
 async function googleLogin() {
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
+    // Force account selection popup every time
     provider.setCustomParameters({ prompt: 'select_account' });
+
     showMsg('Connecting to Google...', 'success');
+
     const result  = await auth.signInWithPopup(provider);
     const idToken = await result.user.getIdToken();
     const name    = result.user.displayName;
     const email   = result.user.email;
     const avatar  = result.user.photoURL;
+
     showMsg(`✅ Google verified: ${email} — redirecting...`, 'success');
+
+    // Send token to backend
     await backendSocialLogin(idToken, name, email, avatar);
   } catch (err) {
     if (err.code === 'auth/popup-closed-by-user') {
@@ -325,16 +329,23 @@ async function googleLogin() {
   }
 }
 
-// SEND TOKEN TO BACKEND
+
+
+// ─── SEND TOKEN TO BACKEND ───
+const SERVER = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000"
+  : "https://login-system-backend-i3b8.onrender.com";
+
 async function backendSocialLogin(idToken, name, email, avatar) {
   try {
-    const res  = await fetch(`${API_BASE}/firebase-login`, {
+    const res  = await fetch(`${SERVER}/firebase-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     });
     const data = await res.json();
     if (data.success) {
+      // Save session info
       localStorage.setItem('token',  data.token);
       localStorage.setItem('email',  email  || data.email || '');
       localStorage.setItem('name',   name   || data.name  || '');
@@ -350,14 +361,15 @@ async function backendSocialLogin(idToken, name, email, avatar) {
   }
 }
 
-// EMAIL + PASSWORD LOGIN
+// ─── EMAIL + PASSWORD LOGIN ───
 async function emailLogin() {
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   if (!email || !password) return showMsg('Enter email and password', 'error');
+
   setLoading('login-btn', 'login-text', 'login-spinner', true);
   try {
-    const res  = await fetch(`${API_BASE}/login`, {
+    const res  = await fetch(`${SERVER}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -380,7 +392,7 @@ async function emailLogin() {
   }
 }
 
-// OTP
+// ─── OTP ───
 let otpEmail = '';
 async function otpAction() {
   if (!otpSent) await sendOtp(); else await verifyOtp();
@@ -392,7 +404,7 @@ async function sendOtp() {
   otpEmail = email;
   setLoading('otp-btn', 'otp-btn-text', 'otp-spinner', true);
   try {
-    const res  = await fetch(`${API_BASE}/send-otp`, {
+    const res  = await fetch(`${SERVER}/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
@@ -420,7 +432,7 @@ async function verifyOtp() {
   if (otp.length < 6) return showMsg('Enter all 6 digits', 'error');
   setLoading('otp-btn', 'otp-btn-text', 'otp-spinner', true);
   try {
-    const res  = await fetch(`${API_BASE}/verify-otp`, {
+    const res  = await fetch(`${SERVER}/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: otpEmail, otp })
@@ -443,7 +455,7 @@ async function verifyOtp() {
   }
 }
 
-// HELPERS
+// ─── HELPERS ───
 function togglePwd() {
   const pwd = document.getElementById('password');
   pwd.type = pwd.type === 'password' ? 'text' : 'password';
