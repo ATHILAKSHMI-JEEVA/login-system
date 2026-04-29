@@ -207,7 +207,7 @@ if (!token || !myEmail) document.getElementById("login-wall").style.display = "f
 document.getElementById("topbar-avatar").textContent  = myEmail ? myEmail[0].toUpperCase() : "?";
 document.getElementById("topbar-email").textContent   = myEmail || "";
 
-const socket = io(SERVER, { transports: ["websocket","polling"] });
+const socket = io(SERVER, { transports: ["polling"] });
 socket.emit("join", myEmail);
 
 let onlineList  = [];
