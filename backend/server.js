@@ -72,7 +72,12 @@ db.query(`
 
 // ─── Firebase ───
 try {
-  const serviceAccount = require("./serviceAccountKey.json");
+  let serviceAccount;
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } else {
+    serviceAccount = require("./serviceAccountKey.json");
+  }
   admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
   console.log("✅ Firebase Admin Ready");
 } catch (e) {
@@ -265,6 +270,11 @@ io.on("connection", (socket) => {
   socket.on("stop-typing", ({ to, from }) => {
     const receiverSocketId = onlineUsers.get(to);
     if (receiverSocketId) io.to(receiverSocketId).emit("stop-typing", { from });
+  });
+
+  socket.on("msg-seen", ({ to, from }) => {
+    const receiverSocketId = onlineUsers.get(to);
+    if (receiverSocketId) io.to(receiverSocketId).emit("msg-seen", { from });
   });
 
   socket.on("private-message", ({ to, from, message, type, fileUrl, fileName }) => {
