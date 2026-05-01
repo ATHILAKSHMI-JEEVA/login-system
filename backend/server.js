@@ -11,6 +11,14 @@ const multer     = require("multer");
 const path       = require("path");
 const fs         = require("fs");
 require("dotenv").config();
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 const app    = express();
 const server = http.createServer(app);
@@ -233,7 +241,7 @@ app.get("/messages/:user1/:user2", (req, res) => {
 // ─── FILE UPLOAD ───
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) return res.json({ success: false, message: "No file" });
-  const fileUrl  = `http://localhost:5000/uploads/${req.file.filename}`;
+  const fileUrl  = req.file.path;
   const fileName = req.file.originalname;
   const mimeType = req.file.mimetype;
 
