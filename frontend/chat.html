@@ -112,6 +112,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 #img-preview-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;}
 #img-preview-overlay.show{display:flex;}
 
+/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:380px;max-width:90vw;}
@@ -167,13 +168,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
     <div id="tab-bar">
       <button class="tab-btn active" onclick="setTab('all',this)">All</button>
       <button class="tab-btn" onclick="setTab('online',this)">Online</button>
+      <button class="tab-btn" onclick="setTab('groups',this)">Groups</button>
     </div>
     <div id="sidebar-scroll">
-      <div class="section-label">Direct Messages</div>
-      <div id="users-list"></div>
-      <div class="section-label" style="margin-top:8px;">Groups</div>
-      <button class="create-group-btn" onclick="openCreateGroup()">➕ Create New Group</button>
-      <div id="groups-list"></div>
+      <div id="dm-section">
+        <div id="users-list"></div>
+      </div>
+      <div id="groups-section" style="display:none;">
+        <button class="create-group-btn" onclick="openCreateGroup()">➕ Create New Group</button>
+        <div id="groups-list"></div>
+      </div>
     </div>
   </div>
 
@@ -186,11 +190,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
     <div id="chat-view">
       <div id="chat-topbar">
         <div id="ct-avatar" class="av0">?</div>
-        <div>
+        <div style="flex:1;">
           <div id="ct-name">-</div>
           <div id="ct-status">-</div>
           <div id="typing-indicator">typing...</div>
         </div>
+        <div id="group-actions" style="display:none;display:flex;gap:8px;">
+          <button class="icon-btn" onclick="openGroupInfo()" title="Group Info" style="font-size:14px;">👥</button>
+        </div>
+      </div>
+      <!-- Group Info Panel -->
+      <div id="group-info-panel" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">MEMBERS</div>
+        <div id="group-members-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+        <button onclick="openAddMembers()" style="background:var(--accent);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--font);font-weight:600;">➕ Add Members</button>
+        <button onclick="leaveGroup()" style="background:transparent;border:1px solid var(--danger);color:var(--danger);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--font);margin-left:8px;">🚪 Leave Group</button>
       </div>
       <div id="messages-area"></div>
       <div id="input-row">
@@ -209,6 +223,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
   <img id="preview-img" src="" alt="preview"/>
 </div>
 
+<!-- Add Members Modal -->
+<div class="modal-overlay" id="add-members-modal">
+  <div class="modal">
+    <h3>➕ Add Members</h3>
+    <div class="members-list" id="add-members-checklist"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="document.getElementById('add-members-modal').classList.remove('show')">Cancel</button>
+      <button class="btn-create" onclick="addMembers()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Group Modal -->
 <div class="modal-overlay" id="group-modal">
   <div class="modal">
     <h3>➕ Create New Group</h3>
@@ -234,40 +261,30 @@ if (!token || !myEmail) document.getElementById('login-wall').style.display = 'f
 document.getElementById('topbar-avatar').textContent = myEmail ? myEmail[0].toUpperCase() : '?';
 document.getElementById('topbar-email').textContent  = myEmail || '';
 
-// ── Socket connect ──
-const socket = io(SERVER, { transports: ['websocket', 'polling'] });
+const socket = io(SERVER, { transports: ['polling'] });
+socket.emit('join', myEmail);
 
-socket.on('connect', function() {
-  console.log('✅ Socket connected:', socket.id);
-  // Join after connect
-  socket.emit('join', myEmail);
-});
-
-socket.on('connect_error', function(err) {
-  console.log('❌ Socket error:', err.message);
-});
-
-let onlineList   = [];
-let allUsers     = [];
-let myGroups     = [];
-let currentChat  = null;
+let onlineList  = [];
+let allUsers    = [];
+let myGroups    = [];
+let currentChat = null;
 let currentGroup = null;
-let activeTab    = 'all';
-let lastSeenMap  = {};
-let unreadMap    = {};
-let typingTimer  = null;
+let activeTab   = 'all';
+let lastSeenMap = {};
+let unreadMap   = {};
+let typingTimer = null;
 
 function avClass(email) {
-  var c = ['av0','av1','av2','av3','av4','av5','av6','av7'];
-  var h = 0;
-  for (var i = 0; i < email.length; i++) h = (h * 31 + email.charCodeAt(i)) % c.length;
+  const c = ['av0','av1','av2','av3','av4','av5','av6','av7'];
+  let h = 0;
+  for (let ch of email) h = (h * 31 + ch.charCodeAt(0)) % c.length;
   return c[h];
 }
 
 function formatLastSeen(iso) {
   if (!iso) return 'Last seen: unknown';
-  var d = new Date(iso), now = new Date();
-  var diff = Math.floor((now - d) / 1000);
+  const d = new Date(iso), now = new Date();
+  const diff = Math.floor((now - d) / 1000);
   if (diff < 60)    return 'Last seen just now';
   if (diff < 3600)  return 'Last seen ' + Math.floor(diff/60) + 'm ago';
   if (diff < 86400) return 'Last seen ' + Math.floor(diff/3600) + 'h ago';
@@ -279,12 +296,11 @@ function escHtml(t) {
 }
 
 function scrollBottom() {
-  var a = document.getElementById('messages-area');
+  const a = document.getElementById('messages-area');
   a.scrollTop = a.scrollHeight;
 }
 
-// ── Socket listeners ──────────────────────────────────────────
-
+// Socket events
 socket.on('online-users', function(list) {
   onlineList = list;
   renderUsers();
@@ -311,14 +327,13 @@ socket.on('stop-typing', function(data) {
   }
 });
 
-socket.on('msg-seen', function() {
+socket.on('msg-seen', function(data) {
   document.querySelectorAll('.tick').forEach(function(t) {
     t.textContent = '✓✓';
     t.classList.add('seen');
   });
 });
 
-// Private message received
 socket.on('private-message', function(data) {
   if (currentChat === data.from) {
     appendBubble(data.message, 'them', data.time, data.type, data.fileUrl, data.fileName);
@@ -328,25 +343,17 @@ socket.on('private-message', function(data) {
   }
 });
 
-// ── GROUP MESSAGE FIX ──────────────────────────────────────────
-// Server broadcasts to ALL room members including sender.
-// We show the bubble here for EVERYONE (sender + receivers).
-// sendMsg() no longer adds an optimistic bubble for groups.
 socket.on('group-message', function(data) {
-  // Only render if this group is currently open
   if (currentGroup && currentGroup.id === data.groupId) {
-    var who = (data.from === myEmail) ? 'me' : 'them';
-    appendGroupBubble(data.from, data.message, who, data.time, data.type, data.fileUrl, data.fileName);
+    appendGroupBubble(data.from, data.message, data.from === myEmail ? 'me' : 'them', data.time, data.type, data.fileUrl, data.fileName);
   }
-  // If group is NOT open, could add unread badge here (optional)
 });
 
-// ── Load data ────────────────────────────────────────────────
-
+// Load users
 async function loadUsers() {
   try {
-    var res  = await fetch(SERVER + '/users');
-    var data = await res.json();
+    const res  = await fetch(SERVER + '/users');
+    const data = await res.json();
     if (data.success) {
       allUsers = data.users.filter(function(u) { return u !== myEmail; });
       renderUsers();
@@ -354,10 +361,11 @@ async function loadUsers() {
   } catch(e) { console.log('Load users error:', e); }
 }
 
+// Load groups
 async function loadGroups() {
   try {
-    var res  = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
-    var data = await res.json();
+    const res  = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
+    const data = await res.json();
     if (data.success) {
       myGroups = data.groups;
       renderGroups();
@@ -365,15 +373,16 @@ async function loadGroups() {
   } catch(e) { console.log('Load groups error:', e); }
 }
 
-// ── Render sidebar ───────────────────────────────────────────
+function renderUsers(filter) {
+  filter = filter || '';
+  const list = document.getElementById('users-list');
+  const q = document.getElementById('search-input').value.toLowerCase();
+  filter = q || filter;
 
-function renderUsers() {
-  var list = document.getElementById('users-list');
-  var q    = document.getElementById('search-input').value.toLowerCase();
-  var users = allUsers.filter(function(u) { return u.toLowerCase().includes(q); });
+  let users = allUsers.filter(function(u) { return u.toLowerCase().includes(filter); });
   if (activeTab === 'online') users = users.filter(function(u) { return onlineList.includes(u); });
 
-  var onlineCnt = allUsers.filter(function(u) { return onlineList.includes(u); }).length;
+  const onlineCnt = allUsers.filter(function(u) { return onlineList.includes(u); }).length;
   document.getElementById('online-count').textContent = allUsers.length + ' users · ' + onlineCnt + ' online';
 
   list.innerHTML = '';
@@ -381,20 +390,23 @@ function renderUsers() {
     list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">No users found</div>';
     return;
   }
+
   users.forEach(function(email) {
-    var isOnline = onlineList.includes(email);
-    var av       = avClass(email);
-    var unread   = unreadMap[email] || 0;
-    var sub      = isOnline ? 'Online now' : formatLastSeen(lastSeenMap[email]);
-    var card     = document.createElement('div');
+    const isOnline = onlineList.includes(email);
+    const av = avClass(email);
+    const unread = unreadMap[email] || 0;
+    const sub = isOnline ? 'Online now' : formatLastSeen(lastSeenMap[email]);
+
+    const card = document.createElement('div');
     card.className = 'user-card' + (currentChat === email ? ' active' : '');
+    card.dataset.email = email;
     card.innerHTML =
       '<div class="avatar-wrap">' +
         '<div class="card-avatar ' + av + '">' + email[0].toUpperCase() + '</div>' +
         '<div class="status-dot ' + (isOnline ? 'online' : '') + '"></div>' +
       '</div>' +
       '<div class="card-info">' +
-        '<div class="card-name">' + escHtml(email) + '</div>' +
+        '<div class="card-name">' + email + '</div>' +
         '<div class="card-sub ' + (isOnline ? 'online-text' : '') + '">' + (isOnline ? '🟢 ' : '') + sub + '</div>' +
       '</div>' +
       '<div class="unread-badge" style="' + (unread > 0 ? 'display:flex' : 'display:none') + '">' + unread + '</div>';
@@ -404,14 +416,14 @@ function renderUsers() {
 }
 
 function renderGroups() {
-  var list = document.getElementById('groups-list');
+  const list = document.getElementById('groups-list');
   list.innerHTML = '';
   if (!myGroups.length) {
     list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:10px;">No groups yet</div>';
     return;
   }
   myGroups.forEach(function(g) {
-    var card = document.createElement('div');
+    const card = document.createElement('div');
     card.className = 'group-card' + (currentGroup && currentGroup.id === g.id ? ' active' : '');
     card.innerHTML =
       '<div class="group-avatar">👥</div>' +
@@ -428,30 +440,36 @@ function setTab(tab, btn) {
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
-  renderUsers();
+  if (tab === 'groups') {
+    document.getElementById('dm-section').style.display = 'none';
+    document.getElementById('groups-section').style.display = 'block';
+    renderGroups();
+  } else {
+    document.getElementById('dm-section').style.display = 'block';
+    document.getElementById('groups-section').style.display = 'none';
+    renderUsers();
+  }
 }
 
 document.getElementById('search-input').oninput = function() { renderUsers(); };
 
-// ── Open private chat ────────────────────────────────────────
-
 async function openChat(email) {
-  currentChat  = email;
+  currentChat = email;
   currentGroup = null;
   unreadMap[email] = 0;
   renderUsers();
   renderGroups();
 
   document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('chat-view').style.display   = 'flex';
+  const cv = document.getElementById('chat-view');
+  cv.style.display = 'flex';
   updateChatHeader();
   socket.emit('msg-seen', { to: email, from: myEmail });
+  showGroupActions(false);
 
-  var res  = await fetch(SERVER + '/messages/' + encodeURIComponent(myEmail) + '/' + encodeURIComponent(email), {
-    headers: { authorization: token }
-  });
-  var data = await res.json();
-  var area = document.getElementById('messages-area');
+  const res  = await fetch(SERVER + '/messages/' + encodeURIComponent(myEmail) + '/' + encodeURIComponent(email), { headers: { authorization: token } });
+  const data = await res.json();
+  const area = document.getElementById('messages-area');
   area.innerHTML = '';
 
   if (data.success && data.messages.length > 0) {
@@ -460,7 +478,7 @@ async function openChat(email) {
       var day = new Date(m.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
       if (day !== lastDay) {
         var lbl = document.createElement('div');
-        lbl.className   = 'day-label';
+        lbl.className = 'day-label';
         lbl.textContent = day;
         area.appendChild(lbl);
         lastDay = day;
@@ -474,43 +492,42 @@ async function openChat(email) {
 }
 
 function updateChatHeader() {
-  var email    = currentChat;
+  var email = currentChat;
   var isOnline = onlineList.includes(email);
-  var av       = avClass(email);
-  var ctAv     = document.getElementById('ct-avatar');
+  var av = avClass(email);
+  var ctAv = document.getElementById('ct-avatar');
   ctAv.textContent = email[0].toUpperCase();
-  ctAv.className   = av;
+  ctAv.className = av;
   ctAv.style.background = '';
   document.getElementById('ct-name').textContent = email;
   var st = document.getElementById('ct-status');
   st.textContent = isOnline ? '🟢 Online now' : formatLastSeen(lastSeenMap[email]);
-  st.className   = isOnline ? 'online' : '';
+  st.className = isOnline ? 'online' : '';
 }
-
-// ── Open group chat ──────────────────────────────────────────
 
 async function openGroupChat(group) {
   currentGroup = group;
-  currentChat  = null;
+  currentChat = null;
   renderUsers();
   renderGroups();
 
   document.getElementById('empty-state').style.display = 'none';
-  document.getElementById('chat-view').style.display   = 'flex';
+  var cv = document.getElementById('chat-view');
+  cv.style.display = 'flex';
 
   var ctAv = document.getElementById('ct-avatar');
-  ctAv.textContent     = '👥';
-  ctAv.className       = '';
+  ctAv.textContent = '👥';
+  ctAv.className = '';
   ctAv.style.background = 'linear-gradient(135deg,#f59e0b,#ef4444)';
-  document.getElementById('ct-name').textContent   = group.name;
+  document.getElementById('ct-name').textContent = group.name;
   document.getElementById('ct-status').textContent = 'Group Chat';
-  document.getElementById('ct-status').className   = '';
+  document.getElementById('ct-status').className = '';
 
-  // Join the Socket.IO room for this group
   socket.emit('join-group', group.id);
+  showGroupActions(true);
 
-  var res  = await fetch(SERVER + '/group-messages/' + group.id);
-  var data = await res.json();
+  const res  = await fetch(SERVER + '/group-messages/' + group.id);
+  const data = await res.json();
   var area = document.getElementById('messages-area');
   area.innerHTML = '';
 
@@ -524,41 +541,51 @@ async function openGroupChat(group) {
   scrollBottom();
 }
 
-// ── Bubble renderers ─────────────────────────────────────────
-
 function appendBubble(text, who, time, type, fileUrl, fileName) {
   type = type || 'text';
-  var area  = document.getElementById('messages-area');
+  var area = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
+
   var group = document.createElement('div');
   group.className = 'msg-group ' + who;
-  var t    = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var t = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
   var tick = who === 'me' ? '<span class="tick">✓</span>' : '';
-  group.innerHTML = buildContent(text, type, fileUrl, fileName) + '<div class="msg-time">' + t + tick + '</div>';
+  var content = buildContent(text, type, fileUrl, fileName);
+  group.innerHTML = content + '<div class="msg-time">' + t + tick + '</div>';
   area.appendChild(group);
   scrollBottom();
 }
 
 function appendGroupBubble(sender, text, who, time, type, fileUrl, fileName) {
   type = type || 'text';
-  var area  = document.getElementById('messages-area');
+  var area = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
+
   var group = document.createElement('div');
   group.className = 'msg-group ' + who;
-  var t           = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
-  var senderLabel = who === 'them' ? '<div class="sender-name">' + escHtml(sender.split('@')[0]) + '</div>' : '';
-  group.innerHTML = senderLabel + buildContent(text, type, fileUrl, fileName) + '<div class="msg-time">' + t + '</div>';
+  var t = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var senderLabel = who === 'them' ? '<div class="sender-name">' + sender.split('@')[0] + '</div>' : '';
+  var content = buildContent(text, type, fileUrl, fileName);
+  group.innerHTML = senderLabel + content + '<div class="msg-time">' + t + '</div>';
   area.appendChild(group);
   scrollBottom();
 }
 
 function buildContent(text, type, fileUrl, fileName) {
-  if (type === 'image' && fileUrl) return '<img class="img-bubble" src="' + fileUrl + '" alt="image" onclick="previewImg(this.src)"/>';
-  if (type === 'video' && fileUrl) return '<video class="video-bubble" controls src="' + fileUrl + '"></video>';
-  if (type === 'audio' && fileUrl) return '<audio class="audio-bubble" controls src="' + fileUrl + '"></audio>';
-  if (type === 'file'  && fileUrl) return '<a class="file-bubble" href="' + fileUrl + '" target="_blank" download="' + escHtml(fileName||'file') + '"><span class="file-icon">📄</span><span>' + escHtml(fileName||'Download') + '</span></a>';
+  if (type === 'image' && fileUrl) {
+    return '<img class="img-bubble" src="' + fileUrl + '" alt="image" onclick="previewImg(this.src)"/>';
+  }
+  if (type === 'video' && fileUrl) {
+    return '<video class="video-bubble" controls src="' + fileUrl + '"></video>';
+  }
+  if (type === 'audio' && fileUrl) {
+    return '<audio class="audio-bubble" controls src="' + fileUrl + '"></audio>';
+  }
+  if (type === 'file' && fileUrl) {
+    return '<a class="file-bubble" href="' + fileUrl + '" target="_blank" download="' + (fileName || 'file') + '"><span class="file-icon">📄</span><span>' + escHtml(fileName || 'Download') + '</span></a>';
+  }
   return '<div class="bubble">' + escHtml(text || '') + '</div>';
 }
 
@@ -566,8 +593,6 @@ function previewImg(src) {
   document.getElementById('preview-img').src = src;
   document.getElementById('img-preview-overlay').classList.add('show');
 }
-
-// ── Send message ─────────────────────────────────────────────
 
 function sendMsg() {
   var input = document.getElementById('msg-input');
@@ -577,29 +602,15 @@ function sendMsg() {
   var now = new Date().toISOString();
 
   if (currentGroup) {
-    // ✅ NO optimistic bubble for groups!
-    // Server will broadcast back via socket.on('group-message')
-    // and appendGroupBubble() will be called for sender too.
-    socket.emit('group-message', {
-      groupId: currentGroup.id,
-      from:    myEmail,
-      message: text,
-      type:    'text'
-    });
-
+    appendGroupBubble(myEmail, text, 'me', now, 'text', null, null);
+    socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: text, type: 'text' });
   } else if (currentChat) {
-    // Private: optimistic bubble is fine (server doesn't echo back to sender)
     appendBubble(text, 'me', now, 'text', null, null);
-    socket.emit('private-message', {
-      to:      currentChat,
-      from:    myEmail,
-      message: text,
-      type:    'text'
-    });
+    socket.emit('private-message', { to: currentChat, from: myEmail, message: text, type: 'text' });
     socket.emit('stop-typing', { to: currentChat, from: myEmail });
   }
 
-  input.value        = '';
+  input.value = '';
   input.style.height = 'auto';
 }
 
@@ -618,8 +629,7 @@ document.getElementById('msg-input').addEventListener('input', function() {
   }, 1500);
 });
 
-// ── File upload ──────────────────────────────────────────────
-
+// File upload
 document.getElementById('file-input').addEventListener('change', async function() {
   var file = this.files[0];
   if (!file || (!currentChat && !currentGroup)) return;
@@ -631,33 +641,20 @@ document.getElementById('file-input').addEventListener('change', async function(
     if (data.success) {
       var now = new Date().toISOString();
       if (currentGroup) {
-        // No optimistic bubble — server will broadcast back
-        socket.emit('group-message', {
-          groupId:  currentGroup.id,
-          from:     myEmail,
-          message:  '',
-          type:     data.type,
-          fileUrl:  data.fileUrl,
-          fileName: data.fileName
-        });
+        appendGroupBubble(myEmail, '', 'me', now, data.type, data.fileUrl, data.fileName);
+        socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
       } else {
         appendBubble('', 'me', now, data.type, data.fileUrl, data.fileName);
-        socket.emit('private-message', {
-          to:       currentChat,
-          from:     myEmail,
-          message:  '',
-          type:     data.type,
-          fileUrl:  data.fileUrl,
-          fileName: data.fileName
-        });
+        socket.emit('private-message', { to: currentChat, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
       }
-    } else { alert('Upload failed!'); }
+    } else {
+      alert('Upload failed!');
+    }
   } catch(e) { alert('Upload failed!'); }
   this.value = '';
 });
 
-// ── Group modal ──────────────────────────────────────────────
-
+// Group modal
 function openCreateGroup() {
   var list = document.getElementById('members-checklist');
   list.innerHTML = '';
@@ -665,7 +662,8 @@ function openCreateGroup() {
     var div = document.createElement('label');
     div.className = 'member-check';
     var cb = document.createElement('input');
-    cb.type = 'checkbox'; cb.value = email;
+    cb.type = 'checkbox';
+    cb.value = email;
     div.appendChild(cb);
     div.appendChild(document.createTextNode(' ' + email));
     list.appendChild(div);
@@ -684,6 +682,7 @@ async function createGroup() {
   var checked = [];
   document.querySelectorAll('#members-checklist input:checked').forEach(function(i) { checked.push(i.value); });
   if (!checked.length) { alert('குறைந்தது ஒரு member select பண்ணு!'); return; }
+
   try {
     var res  = await fetch(SERVER + '/groups', {
       method: 'POST',
@@ -700,12 +699,91 @@ async function createGroup() {
   } catch(e) { alert('Group create failed!'); }
 }
 
+// Group info
+function openGroupInfo() {
+  var panel = document.getElementById('group-info-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block' && currentGroup) {
+    loadGroupMembers();
+  }
+}
+
+async function loadGroupMembers() {
+  var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/members');
+  var data = await res.json();
+  var list = document.getElementById('group-members-list');
+  list.innerHTML = '';
+  if (data.success) {
+    data.members.forEach(function(email) {
+      var chip = document.createElement('div');
+      chip.style.cssText = 'background:var(--card);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:12px;color:var(--text);';
+      chip.textContent = email === myEmail ? email + ' (You)' : email;
+      list.appendChild(chip);
+    });
+  }
+}
+
+async function leaveGroup() {
+  if (!confirm('Leave this group?')) return;
+  var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/leave', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: myEmail })
+  });
+  var data = await res.json();
+  if (data.success) {
+    currentGroup = null;
+    document.getElementById('chat-view').style.display = 'none';
+    document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('group-info-panel').style.display = 'none';
+    await loadGroups();
+  }
+}
+
+function openAddMembers() {
+  document.getElementById('group-info-panel').style.display = 'none';
+  var list = document.getElementById('add-members-checklist');
+  list.innerHTML = '';
+  allUsers.forEach(function(email) {
+    var div = document.createElement('label');
+    div.className = 'member-check';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = email;
+    div.appendChild(cb);
+    div.appendChild(document.createTextNode(' ' + email));
+    list.appendChild(div);
+  });
+  document.getElementById('add-members-modal').classList.add('show');
+}
+
+async function addMembers() {
+  var checked = [];
+  document.querySelectorAll('#add-members-checklist input:checked').forEach(function(i) { checked.push(i.value); });
+  if (!checked.length) { alert('Select members!'); return; }
+  var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/members', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ members: checked })
+  });
+  var data = await res.json();
+  if (data.success) {
+    document.getElementById('add-members-modal').classList.remove('show');
+    alert('Members added!');
+  }
+}
+
+// Show group actions when in group chat
+function showGroupActions(show) {
+  document.getElementById('group-actions').style.display = show ? 'flex' : 'none';
+  if (!show) document.getElementById('group-info-panel').style.display = 'none';
+}
+
 function logout() {
   localStorage.clear();
   window.location.href = 'index.html';
 }
 
-// ── Boot ─────────────────────────────────────────────────────
 loadUsers();
 loadGroups();
 </script>
