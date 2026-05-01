@@ -17,7 +17,11 @@ const server = http.createServer(app);
 const io     = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:5500", "http://127.0.0.1:5500", "https://login-system-99cr.vercel.app", "https://login-system-backend-i3b8.onrender.com"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
 // ─── Uploads folder ───
 const uploadsDir = path.join(__dirname, "uploads");
@@ -48,7 +52,7 @@ const db = mysql.createConnection({
   user:     process.env.DB_USER     || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME     || "logindb",
-  ssl:      { rejectUnauthorized: false }
+  ssl: process.env.DB_HOST && !process.env.DB_HOST.includes('localhost') ? { rejectUnauthorized: false } : false
 });
 db.connect(err => {
   if (err) console.log("❌ MySQL Error:", err.message);
