@@ -264,8 +264,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
       <button class="tab-btn active" onclick="setTab('all',this)">All</button>
       <button class="tab-btn" onclick="setTab('online',this)">Online</button>
     </div>
-    <div id="users-scroll"></div>
-  <div class="section-label">Groups</div>
+    <div class="section-label" style="margin-top:6px;">Direct Messages</div>
+  <div id="users-scroll"></div>
+  <div class="section-label" style="margin-top:4px;">Groups</div>
   <button class="create-group-btn" onclick="openCreateGroup()">➕ Create New Group</button>
   <div id="groups-scroll" style="overflow-y:auto;padding:6px;"></div>
   </div>
@@ -671,8 +672,8 @@ function appendGroupBubble(sender, text, who, time, type='text', fileUrl=null, f
   let content = '';
   if (who === 'them') content += '<div style="font-size:11px;color:var(--accent);margin-bottom:2px;">' + sender.split('@')[0] + '</div>';
 
-  if (type === 'image' && fileUrl) {
-    content += '<img class="img-bubble" src="' + fileUrl + '" onclick="previewImg('' + fileUrl + '')" alt="image" onerror="this.style.display='none'"/>';
+    content += '<img class="img-bubble" src="' + fileUrl + '" alt="image" style="cursor:pointer" onclick="previewImg(this.src)" onerror="this.parentNode.innerHTML='📷 View Image'"/>';
+    content += '<img class="img-bubble" src="' + fileUrl + '" onclick="previewImg("' + fileUrl + '")" alt="image" onerror="this.style.display='none'"/>';
   } else if (type === 'file' && fileUrl) {
     content += '<a class="file-bubble" href="' + fileUrl + '" target="_blank"><span class="file-icon">📄</span><span>' + (fileName||'Download') + '</span></a>';
   } else {
