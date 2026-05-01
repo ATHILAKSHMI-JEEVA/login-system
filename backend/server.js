@@ -367,6 +367,60 @@ app.post("/groups/:groupId/leave", (req, res) => {
   });
 });
 
+// ─── USER PROFILE TABLE ───
+db.query(`
+  CREATE TABLE IF NOT EXISTS user_profiles (
+    email      VARCHAR(255) PRIMARY KEY,
+    name       VARCHAR(255),
+    bio        TEXT,
+    avatar_url VARCHAR(500),
+    avatar_color VARCHAR(50) DEFAULT 'av0',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )
+`, err => {
+  if (err) console.log('❌ Profile table error:', err.message);
+  else     console.log('✅ Profile table ready');
+});
+
+// ─── GET PROFILE ───
+app.get('/profile/:email', (req, res) => {
+  db.query('SELECT * FROM user_profiles WHERE email = ?', [req.params.email], (err, result) => {
+    if (err || !result.length) return res.json({ success: false });
+    res.json({ success: true, profile: result[0] });
+  });
+});
+
+// ─── UPDATE PROFILE ───
+app.post('/profile', upload.single('avatar'), async (req, res) => {
+  const { email, name, bio, avatar_color } = req.body;
+  if (!email) return res.json({ success: false, message: 'Email required' });
+  
+  let avatar_url = null;
+  if (req.file) {
+    avatar_url = req.file.path;
+  }
+
+  const fields = { name, bio, avatar_color };
+  if (avatar_url) fields.avatar_url = avatar_url;
+
+  db.query(
+    'INSERT INTO user_profiles (email, name, bio, avatar_color, avatar_url) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), bio=VALUES(bio), avatar_color=VALUES(avatar_color)' + (avatar_url ? ', avatar_url=VALUES(avatar_url)' : ''),
+    [email, name || '', bio || '', avatar_color || 'av0', avatar_url || ''],
+    (err) => {
+      if (err) return res.json({ success: false, message: err.message });
+      res.json({ success: true });
+    }
+  );
+});
+
+// ─── GET ALL PROFILES (for chat) ───
+app.get('/profiles', (req, res) => {
+  db.query('SELECT email, name, bio, avatar_url, avatar_color FROM user_profiles', (err, result) => {
+    if (err) return res.json({ success: false });
+    res.json({ success: true, profiles: result });
+  });
+});
+
 // ─── SOCKET.IO ───
 const onlineUsers = new Map();
 

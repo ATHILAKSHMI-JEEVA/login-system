@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YourApp — Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#070b11; --surface:#0e1521; --card:#131d2e; --border:#1e2d45;
+  --text:#e2eaf5; --muted:#5a7394; --accent:#3b82f6; --accent2:#06d6a0;
+  --danger:#ef4444; --font:'Plus Jakarta Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;}
+
+#topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;}
+.logo{font-size:17px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.logo span{color:var(--text);}
+.back-btn{margin-left:auto;padding:7px 16px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-family:var(--font);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;}
+.back-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+.page{max-width:600px;margin:40px auto;padding:0 20px;}
+
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;margin-bottom:20px;}
+
+/* Avatar section */
+.avatar-section{display:flex;flex-direction:column;align-items:center;margin-bottom:32px;}
+.avatar-preview{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:700;color:#fff;cursor:pointer;position:relative;overflow:hidden;border:3px solid var(--border);transition:border-color 0.2s;}
+.avatar-preview:hover{border-color:var(--accent);}
+.avatar-preview img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.avatar-preview .overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;font-size:22px;border-radius:50%;}
+.avatar-preview:hover .overlay{display:flex;}
+.avatar-name{margin-top:12px;font-size:18px;font-weight:700;}
+.avatar-email{font-size:13px;color:var(--muted);margin-top:2px;}
+#avatar-input{display:none;}
+
+/* Color picker */
+.color-section{margin-bottom:24px;}
+.section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;}
+.color-grid{display:flex;gap:10px;flex-wrap:wrap;}
+.color-dot{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all 0.2s;}
+.color-dot:hover{transform:scale(1.1);}
+.color-dot.selected{border-color:#fff;transform:scale(1.1);}
+.c0{background:linear-gradient(135deg,#3b82f6,#8b5cf6);}
+.c1{background:linear-gradient(135deg,#06d6a0,#3b82f6);}
+.c2{background:linear-gradient(135deg,#f59e0b,#ef4444);}
+.c3{background:linear-gradient(135deg,#ec4899,#8b5cf6);}
+.c4{background:linear-gradient(135deg,#10b981,#06d6a0);}
+.c5{background:linear-gradient(135deg,#f97316,#f59e0b);}
+.c6{background:linear-gradient(135deg,#6366f1,#3b82f6);}
+.c7{background:linear-gradient(135deg,#14b8a6,#3b82f6);}
+
+/* Form */
+.form-group{margin-bottom:20px;}
+.form-label{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:block;}
+.form-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-input::placeholder{color:var(--muted);}
+textarea.form-input{resize:none;height:90px;line-height:1.5;}
+
+.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;transition:opacity 0.2s;}
+.save-btn:hover{opacity:0.88;}
+.save-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+.success-msg{background:rgba(6,214,160,0.12);border:1px solid rgba(6,214,160,0.3);color:var(--accent2);padding:12px 16px;border-radius:10px;font-size:14px;text-align:center;display:none;margin-top:16px;}
+.success-msg.show{display:block;}
+
+/* Stats */
+.stats-row{display:flex;gap:12px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-num{font-size:22px;font-weight:700;color:var(--accent);}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="logo">💬 <span>YourApp</span></div>
+  <a href="chat.html" class="back-btn">← Back to Chat</a>
+</div>
+
+<div class="page">
+  <div class="profile-card">
+    <!-- Avatar -->
+    <div class="avatar-section">
+      <div class="avatar-preview" id="avatar-preview" onclick="document.getElementById('avatar-input').click()">
+        <span id="avatar-letter">?</span>
+        <div class="overlay">📷</div>
+      </div>
+      <input type="file" id="avatar-input" accept="image/*"/>
+      <div class="avatar-name" id="display-name">Loading...</div>
+      <div class="avatar-email" id="display-email">-</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-messages">-</div>
+        <div class="stat-label">Messages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-groups">-</div>
+        <div class="stat-label">Groups</div>
+      </div>
+    </div>
+
+    <!-- Avatar Color -->
+    <div class="color-section">
+      <div class="section-title">Avatar Color</div>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+
+    <!-- Name -->
+    <div class="form-group">
+      <label class="form-label">Display Name</label>
+      <input type="text" id="name-input" class="form-input" placeholder="Your name..."/>
+    </div>
+
+    <!-- Bio -->
+    <div class="form-group">
+      <label class="form-label">Bio</label>
+      <textarea id="bio-input" class="form-input" placeholder="Tell something about yourself..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveProfile()" id="save-btn">💾 Save Profile</button>
+    <div class="success-msg" id="success-msg">✅ Profile saved successfully!</div>
+  </div>
+</div>
+
+<script>
+const SERVER   = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000'
+  : 'https://login-system-backend-i3b8.onrender.com';
+
+const myEmail  = localStorage.getItem('email');
+const token    = localStorage.getItem('token');
+
+if (!myEmail) window.location.href = 'index.html';
+
+document.getElementById('display-email').textContent = myEmail || '';
+
+let selectedColor = 'av0';
+let newAvatarFile = null;
+
+// Color grid
+const colors = ['c0','c1','c2','c3','c4','c5','c6','c7'];
+const colorGrid = document.getElementById('color-grid');
+colors.forEach(function(c, i) {
+  var dot = document.createElement('div');
+  dot.className = 'color-dot ' + c + (i === 0 ? ' selected' : '');
+  dot.dataset.color = 'av' + i;
+  dot.onclick = function() {
+    document.querySelectorAll('.color-dot').forEach(function(d) { d.classList.remove('selected'); });
+    dot.classList.add('selected');
+    selectedColor = dot.dataset.color;
+    updateAvatarColor();
+  };
+  colorGrid.appendChild(dot);
+});
+
+function updateAvatarColor() {
+  var preview = document.getElementById('avatar-preview');
+  if (!newAvatarFile && !preview.querySelector('img')) {
+    var colorMap = {
+      'av0': 'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+      'av1': 'linear-gradient(135deg,#06d6a0,#3b82f6)',
+      'av2': 'linear-gradient(135deg,#f59e0b,#ef4444)',
+      'av3': 'linear-gradient(135deg,#ec4899,#8b5cf6)',
+      'av4': 'linear-gradient(135deg,#10b981,#06d6a0)',
+      'av5': 'linear-gradient(135deg,#f97316,#f59e0b)',
+      'av6': 'linear-gradient(135deg,#6366f1,#3b82f6)',
+      'av7': 'linear-gradient(135deg,#14b8a6,#3b82f6)'
+    };
+    preview.style.background = colorMap[selectedColor] || colorMap['av0'];
+  }
+}
+
+// Avatar image preview
+document.getElementById('avatar-input').onchange = function() {
+  var file = this.files[0];
+  if (!file) return;
+  newAvatarFile = file;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var preview = document.getElementById('avatar-preview');
+    preview.innerHTML = '<img src="' + e.target.result + '" alt="avatar"/><div class="overlay">📷</div>';
+    preview.onclick = function() { document.getElementById('avatar-input').click(); };
+  };
+  reader.readAsDataURL(file);
+};
+
+// Load profile
+async function loadProfile() {
+  try {
+    var res  = await fetch(SERVER + '/profile/' + encodeURIComponent(myEmail));
+    var data = await res.json();
+
+    if (data.success) {
+      var p = data.profile;
+      document.getElementById('name-input').value = p.name || '';
+      document.getElementById('bio-input').value  = p.bio  || '';
+      document.getElementById('display-name').textContent = p.name || myEmail.split('@')[0];
+
+      if (p.avatar_url) {
+        var preview = document.getElementById('avatar-preview');
+        preview.innerHTML = '<img src="' + p.avatar_url + '" alt="avatar"/><div class="overlay">📷</div>';
+        preview.onclick = function() { document.getElementById('avatar-input').click(); };
+      } else {
+        document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
+        selectedColor = p.avatar_color || 'av0';
+        updateAvatarColor();
+        var idx = parseInt(selectedColor.replace('av',''));
+        document.querySelectorAll('.color-dot').forEach(function(d, i) {
+          d.classList.toggle('selected', i === idx);
+        });
+      }
+    } else {
+      document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
+      document.getElementById('display-name').textContent = myEmail.split('@')[0];
+      updateAvatarColor();
+    }
+  } catch(e) {
+    document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
+    document.getElementById('display-name').textContent = myEmail.split('@')[0];
+  }
+
+  // Load stats
+  loadStats();
+}
+
+async function loadStats() {
+  try {
+    var res = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
+    var data = await res.json();
+    document.getElementById('stat-groups').textContent = data.success ? data.groups.length : 0;
+  } catch(e) {}
+  document.getElementById('stat-messages').textContent = '✓';
+}
+
+// Save profile
+async function saveProfile() {
+  var btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  var formData = new FormData();
+  formData.append('email', myEmail);
+  formData.append('name', document.getElementById('name-input').value.trim());
+  formData.append('bio', document.getElementById('bio-input').value.trim());
+  formData.append('avatar_color', selectedColor);
+  if (newAvatarFile) formData.append('avatar', newAvatarFile);
+
+  try {
+    var res  = await fetch(SERVER + '/profile', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.success) {
+      var name = document.getElementById('name-input').value.trim();
+      document.getElementById('display-name').textContent = name || myEmail.split('@')[0];
+      if (name) localStorage.setItem('userName', name);
+      var msg = document.getElementById('success-msg');
+      msg.classList.add('show');
+      setTimeout(function() { msg.classList.remove('show'); }, 3000);
+    }
+  } catch(e) { alert('Save failed!'); }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Save Profile';
+}
+
+loadProfile();
+</script>
+</body>
+</html>
