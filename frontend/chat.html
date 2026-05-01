@@ -380,8 +380,12 @@ function appendBubble(text, who, time, type="text", fileUrl=null, fileName=null)
   const t = time ? new Date(time).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}) : "";
 
   let content = "";
+  // Auto detect image from URL if type is wrong
+  if (fileUrl && !type) type = "file";
+  if (fileUrl && (fileUrl.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || (type==="image"))) type = "image";
+
   if (type === "image" && fileUrl) {
-    content = `<img class="img-bubble" src="${fileUrl}" onclick="previewImg('${fileUrl}')" alt="image"/>`;
+    content = `<img class="img-bubble" src="${fileUrl}" onclick="previewImg('${fileUrl}')" alt="image" onerror="this.style.display='none';this.nextSibling.style.display='block'" /><a href="${fileUrl}" target="_blank" style="display:none;color:#4493f8">📷 View Image</a>`;
   } else if (type === "video" && fileUrl) {
     content = `<video class="video-bubble" controls src="${fileUrl}"></video>`;
   } else if (type === "audio" && fileUrl) {
