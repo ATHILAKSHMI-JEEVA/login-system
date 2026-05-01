@@ -11,14 +11,6 @@ const multer     = require("multer");
 const path       = require("path");
 const fs         = require("fs");
 require("dotenv").config();
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
 
 const app    = express();
 const server = http.createServer(app);
@@ -26,7 +18,7 @@ const io     = new Server(server, { cors: { origin: "*" } });
 
 app.use(express.json());
 app.use(cors({
-  origin: ["http://localhost:5500", "http://127.0.0.1:5500", "https://login-system-99cr.vercel.app", "https://login-system-backend-i3b8.onrender.com"],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -48,10 +40,7 @@ const storage = multer.diskStorage({
     cb(null, unique + path.extname(file.originalname));
   }
 });
-const upload = multer({
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
-});
+const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // ─── MySQL ───
 const db = mysql.createConnection({
@@ -60,60 +49,49 @@ const db = mysql.createConnection({
   user:     process.env.DB_USER     || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME     || "logindb",
-  ssl: process.env.DB_HOST && !process.env.DB_HOST.includes('localhost') ? { rejectUnauthorized: false } : false
+  ssl: process.env.DB_HOST && !process.env.DB_HOST.includes('localhost')
+       ? { rejectUnauthorized: false } : false
 });
 db.connect(err => {
   if (err) console.log("❌ MySQL Error:", err.message);
   else     console.log("✅ MySQL Connected");
 });
 
-// ─── Tables ───
-// ─── Group Tables ───
-db.query(`
-  CREATE TABLE IF NOT EXISTS groups_table (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(255) NOT NULL,
-    created_by  VARCHAR(255) NOT NULL,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`, err => { if (err) console.log('❌ Groups table error:', err.message); else console.log('✅ Groups table ready'); });
+// ─── Create Tables ───
+db.query(`CREATE TABLE IF NOT EXISTS groups_table (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  created_by VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`, err => { if (err) console.log('❌ groups_table:', err.message); else console.log('✅ groups_table ready'); });
 
-db.query(`
-  CREATE TABLE IF NOT EXISTS group_members (
-    id        INT AUTO_INCREMENT PRIMARY KEY,
-    group_id  INT NOT NULL,
-    email     VARCHAR(255) NOT NULL
-  )
-`, err => { if (err) console.log('❌ Group members table error:', err.message); else console.log('✅ Group members table ready'); });
+db.query(`CREATE TABLE IF NOT EXISTS group_members (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  group_id INT NOT NULL,
+  email VARCHAR(255) NOT NULL
+)`, err => { if (err) console.log('❌ group_members:', err.message); else console.log('✅ group_members ready'); });
 
-db.query(`
-  CREATE TABLE IF NOT EXISTS group_messages (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    group_id   INT NOT NULL,
-    sender     VARCHAR(255) NOT NULL,
-    message    TEXT,
-    type       VARCHAR(20) DEFAULT 'text',
-    file_url   VARCHAR(500),
-    file_name  VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`, err => { if (err) console.log('❌ Group messages table error:', err.message); else console.log('✅ Group messages table ready'); });
+db.query(`CREATE TABLE IF NOT EXISTS group_messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  group_id INT NOT NULL,
+  sender VARCHAR(255) NOT NULL,
+  message TEXT,
+  type VARCHAR(20) DEFAULT 'text',
+  file_url VARCHAR(500),
+  file_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`, err => { if (err) console.log('❌ group_messages:', err.message); else console.log('✅ group_messages ready'); });
 
-db.query(`
-  CREATE TABLE IF NOT EXISTS messages (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    sender     VARCHAR(255) NOT NULL,
-    receiver   VARCHAR(255) NOT NULL,
-    message    TEXT,
-    type       VARCHAR(20) DEFAULT 'text',
-    file_url   VARCHAR(500),
-    file_name  VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`, err => {
-  if (err) console.log("❌ Table error:", err.message);
-  else     console.log("✅ Messages table ready");
-});
+db.query(`CREATE TABLE IF NOT EXISTS messages (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sender VARCHAR(255) NOT NULL,
+  receiver VARCHAR(255) NOT NULL,
+  message TEXT,
+  type VARCHAR(20) DEFAULT 'text',
+  file_url VARCHAR(500),
+  file_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`, err => { if (err) console.log("❌ messages:", err.message); else console.log("✅ messages ready"); });
 
 // ─── Firebase ───
 try {
@@ -131,7 +109,10 @@ try {
 
 const otpStore = new Map();
 
-// ─── REGISTER ───
+// ════════════════════════════════════
+// AUTH ROUTES
+// ════════════════════════════════════
+
 app.post("/register", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.json({ message: "All fields required" });
@@ -142,7 +123,6 @@ app.post("/register", async (req, res) => {
   });
 });
 
-// ─── LOGIN ───
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   db.query("SELECT * FROM users WHERE email = ?", [email], async (err, result) => {
@@ -150,11 +130,10 @@ app.post("/login", (req, res) => {
     const match = await bcrypt.compare(password, result[0].password);
     if (!match) return res.json({ message: "Wrong password" });
     const token = jwt.sign({ id: result[0].id, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
-    res.json({ message: "Login success", token });
+    res.json({ message: "Login success", token, email });
   });
 });
 
-// ─── FIREBASE LOGIN ───
 app.post("/firebase-login", async (req, res) => {
   const { idToken } = req.body;
   if (!idToken) return res.json({ success: false, message: "No token provided" });
@@ -172,39 +151,31 @@ app.post("/firebase-login", async (req, res) => {
           if (err2) return res.json({ success: false, message: "Could not create user" });
           issueToken(r.insertId);
         });
-      } else {
-        issueToken(result[0].id);
-      }
+      } else { issueToken(result[0].id); }
     });
   } catch (err) {
     res.status(401).json({ success: false, message: "Invalid Firebase token: " + err.message });
   }
 });
 
-// ─── SEND OTP ───
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
   if (!email) return res.json({ success: false, message: "Email required" });
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore.set(email, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
   const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS }
+    service: "gmail", auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS }
   });
   try {
     await transporter.sendMail({
-      from: `"YourApp" <${process.env.MAIL_USER}>`,
-      to: email,
+      from: `"YourApp" <${process.env.MAIL_USER}>`, to: email,
       subject: "Your OTP Code",
       html: `<h2>Your OTP: <strong>${otp}</strong></h2><p>Valid for 10 minutes.</p>`
     });
     res.json({ success: true, message: "OTP sent" });
-  } catch (err) {
-    res.json({ success: false, message: "Email send failed: " + err.message });
-  }
+  } catch (err) { res.json({ success: false, message: "Email send failed: " + err.message }); }
 });
 
-// ─── VERIFY OTP ───
 app.post("/verify-otp", (req, res) => {
   const { email, otp } = req.body;
   const stored = otpStore.get(email);
@@ -219,13 +190,10 @@ app.post("/verify-otp", (req, res) => {
     };
     if (!result || result.length === 0) {
       db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, "OTP_USER"], (e, r) => done(r.insertId));
-    } else {
-      done(result[0].id);
-    }
+    } else { done(result[0].id); }
   });
 });
 
-// ─── RESET PASSWORD ───
 app.post("/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
   if (!email || !otp || !newPassword) return res.json({ success: false, message: "All fields required" });
@@ -241,7 +209,10 @@ app.post("/reset-password", async (req, res) => {
   });
 });
 
-// ─── GET ALL USERS ───
+// ════════════════════════════════════
+// CHAT API ROUTES
+// ════════════════════════════════════
+
 app.get("/users", (req, res) => {
   db.query("SELECT email FROM users", (err, result) => {
     if (err) return res.json({ success: false });
@@ -249,7 +220,6 @@ app.get("/users", (req, res) => {
   });
 });
 
-// ─── GET CHAT HISTORY ───
 app.get("/messages/:user1/:user2", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.json({ success: false });
@@ -269,32 +239,29 @@ app.get("/messages/:user1/:user2", (req, res) => {
   } catch { res.status(401).json({ success: false }); }
 });
 
-// ─── FILE UPLOAD ───
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) return res.json({ success: false, message: "No file" });
-  const fileUrl  = req.file.path;
+  // For local: serve from /uploads/filename
   const fileName = req.file.originalname;
   const mimeType = req.file.mimetype;
-
+  const fileUrl  = "/uploads/" + req.file.filename;  // relative URL
   let type = "file";
   if (mimeType.startsWith("image/")) type = "image";
   else if (mimeType.startsWith("video/")) type = "video";
   else if (mimeType.startsWith("audio/")) type = "audio";
-
   res.json({ success: true, fileUrl, fileName, type });
 });
 
-// ─── PROTECTED HOME ───
 app.get("/home", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.json({ message: "No token — please login" });
   try {
     const user = jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
-    res.json({ message: `✅ Secure data loaded! User ID: ${user.id} | Email: ${user.email}` });
+    res.json({ message: `✅ User ID: ${user.id} | Email: ${user.email}` });
   } catch { res.status(401).json({ message: "Invalid or expired token" }); }
 });
 
-// ─── CREATE GROUP ───
+// ── GROUP ROUTES ──
 app.post("/groups", (req, res) => {
   const { name, members, created_by } = req.body;
   if (!name || !created_by) return res.json({ success: false, message: 'Name required' });
@@ -310,7 +277,6 @@ app.post("/groups", (req, res) => {
   });
 });
 
-// ─── GET MY GROUPS ───
 app.get("/groups/:email", (req, res) => {
   const { email } = req.params;
   db.query(
@@ -325,7 +291,6 @@ app.get("/groups/:email", (req, res) => {
   );
 });
 
-// ─── GET GROUP MEMBERS ───
 app.get("/groups/:groupId/members", (req, res) => {
   db.query('SELECT email FROM group_members WHERE group_id = ?', [req.params.groupId], (err, result) => {
     if (err) return res.json({ success: false });
@@ -333,7 +298,6 @@ app.get("/groups/:groupId/members", (req, res) => {
   });
 });
 
-// ─── GET GROUP MESSAGES ───
 app.get("/group-messages/:groupId", (req, res) => {
   db.query(
     'SELECT * FROM group_messages WHERE group_id = ? ORDER BY created_at ASC',
@@ -345,56 +309,110 @@ app.get("/group-messages/:groupId", (req, res) => {
   );
 });
 
-// ─── SOCKET.IO ───
-const onlineUsers = new Map();
+// ════════════════════════════════════
+// SOCKET.IO  ← THE FIXED PART
+// ════════════════════════════════════
+const onlineUsers = new Map(); // email → socket.id
 
 io.on("connection", (socket) => {
-  console.log("🔌 Socket connected:", socket.id);
+  console.log("🔌 Connected:", socket.id);
 
+  // 1. User registers their email after connecting
   socket.on("join", (email) => {
     socket.userEmail = email;
     onlineUsers.set(email, socket.id);
     io.emit("online-users", Array.from(onlineUsers.keys()));
-    console.log("👤 Joined:", email);
+    console.log("👤 Online:", email);
+
+    // Auto-join all group rooms this user belongs to
+    // (so they receive messages even if they haven't opened the group)
+    db.query(
+      "SELECT group_id FROM group_members WHERE email = ?",
+      [email],
+      (err, rows) => {
+        if (!err && rows) {
+          rows.forEach(row => {
+            socket.join("group_" + row.group_id);
+            console.log(`   ↳ Auto-joined room: group_${row.group_id}`);
+          });
+        }
+      }
+    );
   });
 
-  socket.on("typing", ({ to, from }) => {
-    const receiverSocketId = onlineUsers.get(to);
-    if (receiverSocketId) io.to(receiverSocketId).emit("typing", { from });
+  // 2. Explicit join-group (when user clicks a group chat)
+  socket.on("join-group", (groupId) => {
+    const room = "group_" + groupId;
+    socket.join(room);
+    console.log(`👥 ${socket.userEmail || socket.id} joined room: ${room}`);
   });
 
-  socket.on("stop-typing", ({ to, from }) => {
-    const receiverSocketId = onlineUsers.get(to);
-    if (receiverSocketId) io.to(receiverSocketId).emit("stop-typing", { from });
-  });
-
-  socket.on("msg-seen", ({ to, from }) => {
-    const receiverSocketId = onlineUsers.get(to);
-    if (receiverSocketId) io.to(receiverSocketId).emit("msg-seen", { from });
-  });
-
+  // 3. Private message → save to DB + deliver to recipient
   socket.on("private-message", ({ to, from, message, type, fileUrl, fileName }) => {
-    // Save to DB
     db.query(
       "INSERT INTO messages (sender, receiver, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
-      [from, to, message || "", type || "text", fileUrl || null, fileName || null]
+      [from, to, message || "", type || "text", fileUrl || null, fileName || null],
+      (err) => { if (err) console.log("❌ private-message DB error:", err.message); }
     );
-    // Send to receiver
-    const receiverSocketId = onlineUsers.get(to);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("private-message", {
+    const recipientSocketId = onlineUsers.get(to);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("private-message", {
         from, message, type, fileUrl, fileName,
         time: new Date().toISOString()
       });
     }
   });
 
+  // 4. Group message → save to DB + broadcast to entire room  ← KEY FIX
+  socket.on("group-message", ({ groupId, from, message, type, fileUrl, fileName }) => {
+    db.query(
+      "INSERT INTO group_messages (group_id, sender, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
+      [groupId, from, message || "", type || "text", fileUrl || null, fileName || null],
+      (err, result) => {
+        if (err) {
+          console.log("❌ group-message DB error:", err.message);
+          return;
+        }
+        const payload = {
+          groupId,
+          from,
+          message,
+          type,
+          fileUrl,
+          fileName,
+          time: new Date().toISOString()
+        };
+        // Broadcast to everyone in the room (including sender for confirmation)
+        io.to("group_" + groupId).emit("group-message", payload);
+        console.log(`✅ Group msg → room group_${groupId} by ${from}: "${message}"`);
+      }
+    );
+  });
+
+  // 5. Typing
+  socket.on("typing", ({ to, from }) => {
+    const s = onlineUsers.get(to);
+    if (s) io.to(s).emit("typing", { from });
+  });
+
+  socket.on("stop-typing", ({ to, from }) => {
+    const s = onlineUsers.get(to);
+    if (s) io.to(s).emit("stop-typing", { from });
+  });
+
+  // 6. Seen
+  socket.on("msg-seen", ({ to, from }) => {
+    const s = onlineUsers.get(to);
+    if (s) io.to(s).emit("msg-seen", { from });
+  });
+
+  // 7. Disconnect
   socket.on("disconnect", () => {
     if (socket.userEmail) {
       io.emit("user-last-seen", { email: socket.userEmail, time: new Date().toISOString() });
       onlineUsers.delete(socket.userEmail);
       io.emit("online-users", Array.from(onlineUsers.keys()));
-      console.log("❌ Disconnected:", socket.userEmail);
+      console.log("🔴 Offline:", socket.userEmail);
     }
   });
 });
