@@ -68,6 +68,37 @@ db.connect(err => {
 });
 
 // ─── Tables ───
+// ─── Group Tables ───
+db.query(`
+  CREATE TABLE IF NOT EXISTS groups_table (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    created_by  VARCHAR(255) NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`, err => { if (err) console.log('❌ Groups table error:', err.message); else console.log('✅ Groups table ready'); });
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS group_members (
+    id        INT AUTO_INCREMENT PRIMARY KEY,
+    group_id  INT NOT NULL,
+    email     VARCHAR(255) NOT NULL
+  )
+`, err => { if (err) console.log('❌ Group members table error:', err.message); else console.log('✅ Group members table ready'); });
+
+db.query(`
+  CREATE TABLE IF NOT EXISTS group_messages (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    group_id   INT NOT NULL,
+    sender     VARCHAR(255) NOT NULL,
+    message    TEXT,
+    type       VARCHAR(20) DEFAULT 'text',
+    file_url   VARCHAR(500),
+    file_name  VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`, err => { if (err) console.log('❌ Group messages table error:', err.message); else console.log('✅ Group messages table ready'); });
+
 db.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -261,6 +292,57 @@ app.get("/home", (req, res) => {
     const user = jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
     res.json({ message: `✅ Secure data loaded! User ID: ${user.id} | Email: ${user.email}` });
   } catch { res.status(401).json({ message: "Invalid or expired token" }); }
+});
+
+// ─── CREATE GROUP ───
+app.post("/groups", (req, res) => {
+  const { name, members, created_by } = req.body;
+  if (!name || !created_by) return res.json({ success: false, message: 'Name required' });
+  db.query('INSERT INTO groups_table (name, created_by) VALUES (?, ?)', [name, created_by], (err, result) => {
+    if (err) return res.json({ success: false, message: err.message });
+    const groupId = result.insertId;
+    const allMembers = [...new Set([created_by, ...members])];
+    const values = allMembers.map(email => [groupId, email]);
+    db.query('INSERT INTO group_members (group_id, email) VALUES ?', [values], (err2) => {
+      if (err2) return res.json({ success: false, message: err2.message });
+      res.json({ success: true, groupId, name });
+    });
+  });
+});
+
+// ─── GET MY GROUPS ───
+app.get("/groups/:email", (req, res) => {
+  const { email } = req.params;
+  db.query(
+    `SELECT g.id, g.name, g.created_by FROM groups_table g
+     JOIN group_members gm ON g.id = gm.group_id
+     WHERE gm.email = ?`,
+    [email],
+    (err, result) => {
+      if (err) return res.json({ success: false });
+      res.json({ success: true, groups: result });
+    }
+  );
+});
+
+// ─── GET GROUP MEMBERS ───
+app.get("/groups/:groupId/members", (req, res) => {
+  db.query('SELECT email FROM group_members WHERE group_id = ?', [req.params.groupId], (err, result) => {
+    if (err) return res.json({ success: false });
+    res.json({ success: true, members: result.map(r => r.email) });
+  });
+});
+
+// ─── GET GROUP MESSAGES ───
+app.get("/group-messages/:groupId", (req, res) => {
+  db.query(
+    'SELECT * FROM group_messages WHERE group_id = ? ORDER BY created_at ASC',
+    [req.params.groupId],
+    (err, result) => {
+      if (err) return res.json({ success: false });
+      res.json({ success: true, messages: result });
+    }
+  );
 });
 
 // ─── SOCKET.IO ───
