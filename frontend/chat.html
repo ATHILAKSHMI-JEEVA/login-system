@@ -17,19 +17,16 @@
 html,body{height:100%;overflow:hidden;}
 body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex;flex-direction:column;}
 
-/* TOPBAR */
 #topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0;}
 .logo{font-size:17px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:8px;}
 .logo span{color:var(--text);}
 #topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-left:auto;}
 #topbar-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
-#logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font);transition:all 0.2s;}
+#logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font);}
 #logout-btn:hover{border-color:var(--danger);color:var(--danger);}
 
-/* MAIN */
 #main{flex:1;display:flex;overflow:hidden;}
 
-/* LEFT PANEL */
 #left-panel{width:300px;min-width:300px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 #panel-header{padding:16px 16px 10px;border-bottom:1px solid var(--border);}
 #panel-header h2{font-size:17px;font-weight:700;}
@@ -39,32 +36,36 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 #search-input:focus{border-color:var(--accent);}
 #search-input::placeholder{color:var(--muted);}
 #tab-bar{display:flex;padding:6px 12px 0;gap:4px;border-bottom:1px solid var(--border);}
-.tab-btn{padding:6px 12px;font-size:12px;font-weight:600;font-family:var(--font);border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;}
+.tab-btn{padding:6px 12px;font-size:12px;font-weight:600;font-family:var(--font);border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
-#users-scroll{flex:1;overflow-y:auto;padding:6px;}
-#users-scroll::-webkit-scrollbar{width:3px;}
-#users-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-.user-card{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:10px;cursor:pointer;transition:background 0.15s;position:relative;margin-bottom:2px;}
-.user-card:hover{background:var(--card);}
-.user-card.active{background:#162038;}
+.section-label{padding:8px 14px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;font-weight:600;}
+#sidebar-scroll{flex:1;overflow-y:auto;}
+#sidebar-scroll::-webkit-scrollbar{width:3px;}
+#sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+.create-group-btn{margin:4px 10px 6px;padding:8px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;width:calc(100% - 20px);text-align:left;display:flex;align-items:center;gap:8px;}
+.create-group-btn:hover{opacity:0.85;}
+
+.user-card,.group-card{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;transition:background 0.15s;margin:1px 6px;}
+.user-card:hover,.group-card:hover{background:var(--card);}
+.user-card.active,.group-card.active{background:#162038;}
 .avatar-wrap{position:relative;flex-shrink:0;}
 .card-avatar{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;}
-.status-dot{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;border:2px solid var(--surface);background:#374151;transition:background 0.3s;}
+.group-avatar{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.status-dot{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;border:2px solid var(--surface);background:#374151;}
 .status-dot.online{background:var(--online);}
 .card-info{flex:1;overflow:hidden;}
 .card-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.card-sub{font-size:11px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.card-sub{font-size:11px;color:var(--muted);margin-top:1px;}
 .card-sub.online-text{color:var(--online);}
 .unread-badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 5px;}
 
-/* RIGHT PANEL */
 #right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 #empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);}
 .empty-icon{width:68px;height:68px;background:var(--card);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;border:1px solid var(--border);}
 #empty-state h3{font-size:16px;color:var(--text);}
 
-/* CHAT VIEW */
 #chat-view{flex:1;display:none;flex-direction:column;overflow:hidden;}
 #chat-topbar{padding:10px 18px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:10px;}
 #ct-avatar{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;}
@@ -73,10 +74,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 #ct-status.online{color:var(--online);}
 #typing-indicator{font-size:11px;color:var(--accent);display:none;font-style:italic;}
 
-/* MESSAGES */
 #messages-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:4px;}
 #messages-area::-webkit-scrollbar{width:3px;}
 #messages-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
 .msg-group{display:flex;flex-direction:column;max-width:65%;gap:2px;}
 .msg-group.me{align-self:flex-end;align-items:flex-end;}
 .msg-group.them{align-self:flex-start;align-items:flex-start;}
@@ -84,146 +85,50 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 .me .bubble{background:var(--me-msg);border-bottom-right-radius:4px;color:#c8ddff;}
 .them .bubble{background:var(--them-msg);border-bottom-left-radius:4px;border:1px solid var(--border);color:var(--text);}
 .msg-time{font-size:10px;color:var(--muted);margin:0 4px;}
+.tick{font-size:12px;color:var(--muted);margin-left:4px;}
+.tick.seen{color:#4493f8;}
 .day-label{align-self:center;font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);padding:3px 12px;border-radius:20px;margin:10px 0;}
 .no-msgs{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:13px;}
+.sender-name{font-size:11px;color:var(--accent);margin-bottom:2px;}
 
-/* MEDIA BUBBLES */
 .img-bubble{max-width:220px;border-radius:12px;cursor:pointer;display:block;}
 .video-bubble{max-width:240px;border-radius:12px;outline:none;}
-.audio-bubble{width:200px;accent-color:var(--accent);}
+.audio-bubble{width:200px;}
 .file-bubble{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--text);font-size:13px;min-width:150px;}
 .file-icon{font-size:20px;}
 
-/* INPUT AREA */
 #input-row{padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:flex-end;gap:8px;}
-.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;transition:all 0.2s;color:var(--text);}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
 .icon-btn:hover{background:var(--border);}
-
-#msg-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 14px;color:var(--text);font-size:13.5px;font-family:var(--font);outline:none;resize:none;max-height:100px;transition:border-color 0.2s;line-height:1.5;}
+#msg-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 14px;color:var(--text);font-size:13.5px;font-family:var(--font);outline:none;resize:none;max-height:100px;line-height:1.5;}
 #msg-input:focus{border-color:var(--accent);}
 #msg-input::placeholder{color:var(--muted);}
-#send-btn{width:40px;height:40px;border-radius:11px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
-#send-btn:hover{background:#2563eb;transform:scale(1.05);}
+#send-btn{width:40px;height:40px;border-radius:11px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#send-btn:hover{background:#2563eb;}
 #send-btn svg{width:17px;height:17px;fill:#fff;}
 #file-input{display:none;}
 
-/* IMAGE PREVIEW */
 #img-preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;}
 #img-preview-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;}
 #img-preview-overlay.show{display:flex;}
 
-/* LOGIN WALL */
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:380px;max-width:90vw;}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px;}
+.modal-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;margin-bottom:12px;}
+.modal-input:focus{border-color:var(--accent);}
+.members-list{max-height:200px;overflow-y:auto;margin-bottom:12px;}
+.member-check{display:flex;align-items:center;gap:10px;padding:7px 4px;cursor:pointer;border-radius:8px;font-size:13px;}
+.member-check:hover{background:var(--card);}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+.btn-cancel{padding:8px 16px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:13px;font-family:var(--font);cursor:pointer;}
+.btn-create{padding:8px 16px;border-radius:8px;background:var(--accent);border:none;color:#fff;font-size:13px;font-family:var(--font);cursor:pointer;font-weight:600;}
+
 #login-wall{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:18px;}
 #login-wall a{padding:11px 26px;background:var(--accent);color:#fff;border-radius:10px;text-decoration:none;font-weight:700;}
 
-/* Ticks */
-.tick { font-size: 12px; color: var(--muted); margin-left: 4px; }
-.tick.seen { color: #4493f8; }
-/* Group styles */
-.create-group-btn {
-  margin: 8px 12px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font);
-  cursor: pointer;
-  width: calc(100% - 24px);
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: opacity 0.2s;
-}
-.create-group-btn:hover { opacity: 0.85; }
-.section-label {
-  padding: 6px 16px;
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  font-weight: 600;
-}
-.group-card {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s;
-  margin-bottom: 2px;
-}
-.group-card:hover { background: var(--card); }
-.group-card.active { background: #162038; }
-.group-avatar {
-  width: 42px; height: 42px;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-/* Modal */
-.modal-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
-}
-.modal-overlay.show { display: flex; }
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 24px;
-  width: 380px;
-  max-width: 90vw;
-}
-.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-.modal input {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: var(--text);
-  font-size: 13px;
-  font-family: var(--font);
-  outline: none;
-  margin-bottom: 12px;
-}
-.modal input:focus { border-color: var(--accent); }
-.members-list { max-height: 200px; overflow-y: auto; margin-bottom: 12px; }
-.member-check {
-  display: flex; align-items: center; gap: 10px;
-  padding: 7px 4px;
-  cursor: pointer;
-  border-radius: 8px;
-  font-size: 13px;
-}
-.member-check:hover { background: var(--card); }
-.member-check input { width: auto; margin: 0; }
-.modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
-.btn-cancel {
-  padding: 8px 16px; border-radius: 8px;
-  background: transparent; border: 1px solid var(--border);
-  color: var(--muted); font-size: 13px; font-family: var(--font);
-  cursor: pointer;
-}
-.btn-create {
-  padding: 8px 16px; border-radius: 8px;
-  background: var(--accent); border: none;
-  color: #fff; font-size: 13px; font-family: var(--font);
-  cursor: pointer; font-weight: 600;
-}
-
-/* Avatar colors */
 .av0{background:linear-gradient(135deg,#3b82f6,#8b5cf6);}
 .av1{background:linear-gradient(135deg,#06d6a0,#3b82f6);}
 .av2{background:linear-gradient(135deg,#f59e0b,#ef4444);}
@@ -264,11 +169,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
       <button class="tab-btn active" onclick="setTab('all',this)">All</button>
       <button class="tab-btn" onclick="setTab('online',this)">Online</button>
     </div>
-    <div class="section-label" style="margin-top:6px;">Direct Messages</div>
-  <div id="users-scroll"></div>
-  <div class="section-label" style="margin-top:4px;">Groups</div>
-  <button class="create-group-btn" onclick="openCreateGroup()">➕ Create New Group</button>
-  <div id="groups-scroll" style="overflow-y:auto;padding:6px;"></div>
+    <div id="sidebar-scroll">
+      <div class="section-label">Direct Messages</div>
+      <div id="users-list"></div>
+      <div class="section-label" style="margin-top:8px;">Groups</div>
+      <button class="create-group-btn" onclick="openCreateGroup()">➕ Create New Group</button>
+      <div id="groups-list"></div>
+    </div>
   </div>
 
   <div id="right-panel">
@@ -288,9 +195,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
       </div>
       <div id="messages-area"></div>
       <div id="input-row">
-        <input type="file" id="file-input" accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"/>
-        <button class="icon-btn" onclick="document.getElementById('file-input').click()" title="Attach file">📎</button>
-
+        <input type="file" id="file-input" accept="image/*,video/*,.pdf,.doc,.docx,.txt"/>
+        <button class="icon-btn" onclick="document.getElementById('file-input').click()">📎</button>
         <textarea id="msg-input" rows="1" placeholder="Type a message..."></textarea>
         <button id="send-btn" onclick="sendMsg()">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -300,16 +206,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
   </div>
 </div>
 
-<!-- Image preview -->
 <div id="img-preview-overlay" onclick="this.classList.remove('show')">
   <img id="preview-img" src="" alt="preview"/>
 </div>
 
-<!-- Create Group Modal -->
+<!-- Group Modal -->
 <div class="modal-overlay" id="group-modal">
   <div class="modal">
     <h3>➕ Create New Group</h3>
-    <input type="text" id="group-name-input" placeholder="Group name..."/>
+    <input type="text" id="group-name-input" class="modal-input" placeholder="Group name..."/>
     <div class="members-list" id="members-checklist"></div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeCreateGroup()">Cancel</button>
@@ -319,339 +224,280 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 </div>
 
 <script>
-const SERVER  = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "https://login-system-backend-i3b8.onrender.com";
-const token   = localStorage.getItem("token");
-const myEmail = localStorage.getItem("email");
+const SERVER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000'
+  : 'https://login-system-backend-i3b8.onrender.com';
 
-if (!token || !myEmail) document.getElementById("login-wall").style.display = "flex";
+const token   = localStorage.getItem('token');
+const myEmail = localStorage.getItem('email');
 
-document.getElementById("topbar-avatar").textContent  = myEmail ? myEmail[0].toUpperCase() : "?";
-document.getElementById("topbar-email").textContent   = myEmail || "";
+if (!token || !myEmail) document.getElementById('login-wall').style.display = 'flex';
 
-const socket = io(SERVER, { transports: ["polling"] });
-socket.emit("join", myEmail);
+document.getElementById('topbar-avatar').textContent = myEmail ? myEmail[0].toUpperCase() : '?';
+document.getElementById('topbar-email').textContent  = myEmail || '';
+
+const socket = io(SERVER, { transports: ['polling'] });
+socket.emit('join', myEmail);
 
 let onlineList  = [];
 let allUsers    = [];
+let myGroups    = [];
 let currentChat = null;
-let activeTab   = "all";
+let currentGroup = null;
+let activeTab   = 'all';
 let lastSeenMap = {};
 let unreadMap   = {};
 let typingTimer = null;
-let mediaRecorder, audioChunks = [];
-let isRecording = false;
 
-// ── Avatar color ──
 function avClass(email) {
   const c = ['av0','av1','av2','av3','av4','av5','av6','av7'];
-  let h = 0; for (let ch of email) h = (h*31+ch.charCodeAt(0))%c.length;
+  let h = 0;
+  for (let ch of email) h = (h * 31 + ch.charCodeAt(0)) % c.length;
   return c[h];
 }
 
 function formatLastSeen(iso) {
-  if (!iso) return "Last seen: unknown";
+  if (!iso) return 'Last seen: unknown';
   const d = new Date(iso), now = new Date();
-  const diff = Math.floor((now-d)/1000);
-  if (diff < 60)   return "Last seen just now";
-  if (diff < 3600) return `Last seen ${Math.floor(diff/60)}m ago`;
-  if (diff < 86400) return `Last seen ${Math.floor(diff/3600)}h ago`;
-  return `Last seen ${d.toLocaleDateString()}`;
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60)    return 'Last seen just now';
+  if (diff < 3600)  return 'Last seen ' + Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return 'Last seen ' + Math.floor(diff/3600) + 'h ago';
+  return 'Last seen ' + d.toLocaleDateString();
 }
 
-// ── Socket events ──
-socket.on("online-users", list => { onlineList = list; renderUsers(); if(currentChat) updateChatHeader(); });
-socket.on("user-last-seen", ({email,time}) => { lastSeenMap[email]=time; renderUsers(); if(currentChat===email) updateChatHeader(); });
-socket.on("private-message", ({from,message,type,fileUrl,fileName,time}) => {
-  if (currentChat === from) {
-    appendBubble(message,"them",time,type,fileUrl,fileName);
-  } else {
-    unreadMap[from] = (unreadMap[from]||0)+1;
-    renderUsers();
-    // Notification sound
-    try { new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAA...").play(); } catch(e){}
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function scrollBottom() {
+  const a = document.getElementById('messages-area');
+  a.scrollTop = a.scrollHeight;
+}
+
+// Socket events
+socket.on('online-users', function(list) {
+  onlineList = list;
+  renderUsers();
+  if (currentChat) updateChatHeader();
+});
+
+socket.on('user-last-seen', function(data) {
+  lastSeenMap[data.email] = data.time;
+  renderUsers();
+  if (currentChat === data.email) updateChatHeader();
+});
+
+socket.on('typing', function(data) {
+  if (currentChat === data.from) {
+    document.getElementById('typing-indicator').style.display = 'block';
+    document.getElementById('ct-status').style.display = 'none';
   }
 });
-socket.on("typing", ({from}) => {
-  if (currentChat===from) {
-    document.getElementById("typing-indicator").style.display = "block";
-    document.getElementById("ct-status").style.display = "none";
+
+socket.on('stop-typing', function(data) {
+  if (currentChat === data.from) {
+    document.getElementById('typing-indicator').style.display = 'none';
+    document.getElementById('ct-status').style.display = 'block';
   }
 });
-socket.on("msg-seen", ({from}) => {
-  // Mark all ticks as seen (double blue tick)
-  document.querySelectorAll(".tick").forEach(t => {
-    t.textContent = "✓✓";
-    t.classList.add("seen");
+
+socket.on('msg-seen', function(data) {
+  document.querySelectorAll('.tick').forEach(function(t) {
+    t.textContent = '✓✓';
+    t.classList.add('seen');
   });
 });
 
-socket.on("stop-typing", ({from}) => {
-  if (currentChat===from) {
-    document.getElementById("typing-indicator").style.display = "none";
-    document.getElementById("ct-status").style.display = "block";
+socket.on('private-message', function(data) {
+  if (currentChat === data.from) {
+    appendBubble(data.message, 'them', data.time, data.type, data.fileUrl, data.fileName);
+  } else {
+    unreadMap[data.from] = (unreadMap[data.from] || 0) + 1;
+    renderUsers();
   }
 });
 
-// ── Load users ──
+socket.on('group-message', function(data) {
+  if (currentGroup && currentGroup.id === data.groupId) {
+    appendGroupBubble(data.from, data.message, data.from === myEmail ? 'me' : 'them', data.time, data.type, data.fileUrl, data.fileName);
+  }
+});
+
+// Load users
 async function loadUsers() {
-  const res  = await fetch(`${SERVER}/users`, { headers:{authorization:token} });
-  const data = await res.json();
-  if (data.success) { allUsers = data.users.filter(u=>u!==myEmail); renderUsers(); }
+  try {
+    const res  = await fetch(SERVER + '/users');
+    const data = await res.json();
+    if (data.success) {
+      allUsers = data.users.filter(function(u) { return u !== myEmail; });
+      renderUsers();
+    }
+  } catch(e) { console.log('Load users error:', e); }
 }
 
-function renderUsers(filter="") {
-  const scroll = document.getElementById("users-scroll");
-  const q = document.getElementById("search-input").value.toLowerCase();
+// Load groups
+async function loadGroups() {
+  try {
+    const res  = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
+    const data = await res.json();
+    if (data.success) {
+      myGroups = data.groups;
+      renderGroups();
+    }
+  } catch(e) { console.log('Load groups error:', e); }
+}
+
+function renderUsers(filter) {
+  filter = filter || '';
+  const list = document.getElementById('users-list');
+  const q = document.getElementById('search-input').value.toLowerCase();
   filter = q || filter;
-  let list = allUsers.filter(u=>u.toLowerCase().includes(filter));
-  if (activeTab==="online") list = list.filter(u=>onlineList.includes(u));
 
-  const onlineCnt = allUsers.filter(u=>onlineList.includes(u)).length;
-  document.getElementById("online-count").textContent = `${allUsers.length} users · ${onlineCnt} online`;
+  let users = allUsers.filter(function(u) { return u.toLowerCase().includes(filter); });
+  if (activeTab === 'online') users = users.filter(function(u) { return onlineList.includes(u); });
 
-  scroll.innerHTML = "";
-  if (!list.length) { scroll.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:13px;padding:28px;">No users found</div>`; return; }
+  const onlineCnt = allUsers.filter(function(u) { return onlineList.includes(u); }).length;
+  document.getElementById('online-count').textContent = allUsers.length + ' users · ' + onlineCnt + ' online';
 
-  list.forEach(email => {
+  list.innerHTML = '';
+  if (!users.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">No users found</div>';
+    return;
+  }
+
+  users.forEach(function(email) {
     const isOnline = onlineList.includes(email);
     const av = avClass(email);
-    const unread = unreadMap[email]||0;
-    const sub = isOnline ? "Online now" : formatLastSeen(lastSeenMap[email]);
-    const card = document.createElement("div");
-    card.className = `user-card${currentChat===email?" active":""}`;
+    const unread = unreadMap[email] || 0;
+    const sub = isOnline ? 'Online now' : formatLastSeen(lastSeenMap[email]);
+
+    const card = document.createElement('div');
+    card.className = 'user-card' + (currentChat === email ? ' active' : '');
     card.dataset.email = email;
-    card.innerHTML = `
-      <div class="avatar-wrap">
-        <div class="card-avatar ${av}">${email[0].toUpperCase()}</div>
-        <div class="status-dot ${isOnline?"online":""}"></div>
-      </div>
-      <div class="card-info">
-        <div class="card-name">${email}</div>
-        <div class="card-sub ${isOnline?"online-text":""}">${isOnline?"🟢 ":""}${sub}</div>
-      </div>
-      <div class="unread-badge" style="${unread>0?"display:flex":"display:none"}">${unread}</div>`;
-    card.onclick = () => openChat(email);
-    scroll.appendChild(card);
+    card.innerHTML =
+      '<div class="avatar-wrap">' +
+        '<div class="card-avatar ' + av + '">' + email[0].toUpperCase() + '</div>' +
+        '<div class="status-dot ' + (isOnline ? 'online' : '') + '"></div>' +
+      '</div>' +
+      '<div class="card-info">' +
+        '<div class="card-name">' + email + '</div>' +
+        '<div class="card-sub ' + (isOnline ? 'online-text' : '') + '">' + (isOnline ? '🟢 ' : '') + sub + '</div>' +
+      '</div>' +
+      '<div class="unread-badge" style="' + (unread > 0 ? 'display:flex' : 'display:none') + '">' + unread + '</div>';
+    card.onclick = function() { openChat(email); };
+    list.appendChild(card);
+  });
+}
+
+function renderGroups() {
+  const list = document.getElementById('groups-list');
+  list.innerHTML = '';
+  if (!myGroups.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:10px;">No groups yet</div>';
+    return;
+  }
+  myGroups.forEach(function(g) {
+    const card = document.createElement('div');
+    card.className = 'group-card' + (currentGroup && currentGroup.id === g.id ? ' active' : '');
+    card.innerHTML =
+      '<div class="group-avatar">👥</div>' +
+      '<div class="card-info">' +
+        '<div class="card-name">' + escHtml(g.name) + '</div>' +
+        '<div class="card-sub">Group Chat</div>' +
+      '</div>';
+    card.onclick = function() { openGroupChat(g); };
+    list.appendChild(card);
   });
 }
 
 function setTab(tab, btn) {
   activeTab = tab;
-  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
   renderUsers();
 }
 
-document.getElementById("search-input").oninput = () => renderUsers();
+document.getElementById('search-input').oninput = function() { renderUsers(); };
 
-// ── Open chat ──
 async function openChat(email) {
   currentChat = email;
+  currentGroup = null;
   unreadMap[email] = 0;
   renderUsers();
-  document.getElementById("empty-state").style.display = "none";
-  const cv = document.getElementById("chat-view");
-  cv.style.display = "flex";
-  updateChatHeader();
-  socket.emit("msg-seen", { to: email, from: myEmail });
+  renderGroups();
 
-  const res  = await fetch(`${SERVER}/messages/${encodeURIComponent(myEmail)}/${encodeURIComponent(email)}`, { headers:{authorization:token} });
+  document.getElementById('empty-state').style.display = 'none';
+  const cv = document.getElementById('chat-view');
+  cv.style.display = 'flex';
+  updateChatHeader();
+  socket.emit('msg-seen', { to: email, from: myEmail });
+
+  const res  = await fetch(SERVER + '/messages/' + encodeURIComponent(myEmail) + '/' + encodeURIComponent(email), { headers: { authorization: token } });
   const data = await res.json();
-  const area = document.getElementById("messages-area");
-  area.innerHTML = "";
+  const area = document.getElementById('messages-area');
+  area.innerHTML = '';
 
   if (data.success && data.messages.length > 0) {
-    let lastDay = "";
-    data.messages.forEach(m => {
-      const day = new Date(m.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
-      if (day!==lastDay) {
-        const lbl = document.createElement("div");
-        lbl.className = "day-label"; lbl.textContent = day;
-        area.appendChild(lbl); lastDay = day;
+    var lastDay = '';
+    data.messages.forEach(function(m) {
+      var day = new Date(m.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      if (day !== lastDay) {
+        var lbl = document.createElement('div');
+        lbl.className = 'day-label';
+        lbl.textContent = day;
+        area.appendChild(lbl);
+        lastDay = day;
       }
-      appendBubble(m.message, m.sender===myEmail?"me":"them", m.created_at, m.type, m.file_url, m.file_name);
+      appendBubble(m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name);
     });
   } else {
-    area.innerHTML = `<div class="no-msgs"><span style="font-size:28px">👋</span><span>Say hi to ${email.split("@")[0]}!</span></div>`;
+    area.innerHTML = '<div class="no-msgs"><span style="font-size:28px">👋</span><span>Say hi to ' + email.split('@')[0] + '!</span></div>';
   }
   scrollBottom();
 }
 
 function updateChatHeader() {
-  const email = currentChat;
-  const isOnline = onlineList.includes(email);
-  const av = avClass(email);
-  const ctAv = document.getElementById("ct-avatar");
+  var email = currentChat;
+  var isOnline = onlineList.includes(email);
+  var av = avClass(email);
+  var ctAv = document.getElementById('ct-avatar');
   ctAv.textContent = email[0].toUpperCase();
   ctAv.className = av;
-  document.getElementById("ct-name").textContent = email;
-  const st = document.getElementById("ct-status");
-  st.textContent = isOnline ? "🟢 Online now" : formatLastSeen(lastSeenMap[email]);
-  st.className = isOnline ? "online" : "";
+  ctAv.style.background = '';
+  document.getElementById('ct-name').textContent = email;
+  var st = document.getElementById('ct-status');
+  st.textContent = isOnline ? '🟢 Online now' : formatLastSeen(lastSeenMap[email]);
+  st.className = isOnline ? 'online' : '';
 }
 
-// ── Append bubble ──
-function appendBubble(text, who, time, type="text", fileUrl=null, fileName=null) {
-  const area = document.getElementById("messages-area");
-  const noMsg = area.querySelector(".no-msgs");
-  if (noMsg) noMsg.remove();
-
-  const group = document.createElement("div");
-  group.className = `msg-group ${who}`;
-  const t = time ? new Date(time).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}) : "";
-
-  let content = "";
-  // Auto detect image from URL if type is wrong
-  if (fileUrl && !type) type = "file";
-  if (fileUrl && (fileUrl.match(/\.(jpg|jpeg|png|gif|webp|svg)/i) || (type==="image"))) type = "image";
-
-  if (type === "image" && fileUrl) {
-    content = `<img class="img-bubble" src="${fileUrl}" onclick="previewImg('${fileUrl}')" alt="image" onerror="this.style.display='none';this.nextSibling.style.display='block'" /><a href="${fileUrl}" target="_blank" style="display:none;color:#4493f8">📷 View Image</a>`;
-  } else if (type === "video" && fileUrl) {
-    content = `<video class="video-bubble" controls src="${fileUrl}"></video>`;
-  } else if (type === "audio" && fileUrl) {
-    content = `<audio class="audio-bubble" controls preload="auto" src="${fileUrl}" style="width:220px;border-radius:8px;"></audio>`;
-  } else if (type === "file" && fileUrl) {
-    content = `<a class="file-bubble" href="${fileUrl}" target="_blank" download="${fileName||'file'}">
-      <span class="file-icon">📄</span><span>${fileName||'Download file'}</span>
-    </a>`;
-  } else {
-    content = `<div class="bubble">${escHtml(text||"")}</div>`;
-  }
-
-  const tick = who === 'me' ? '<span class="tick" id="tick-'+Date.now()+'">✓</span>' : '';
-  group.innerHTML = `${content}<div class="msg-time">${t}${tick}</div>`;
-  area.appendChild(group);
-  scrollBottom();
-}
-
-function previewImg(src) {
-  document.getElementById("preview-img").src = src;
-  document.getElementById("img-preview-overlay").classList.add("show");
-}
-
-function scrollBottom() {
-  const a = document.getElementById("messages-area");
-  a.scrollTop = a.scrollHeight;
-}
-
-function escHtml(t) {
-  return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
-
-// ── Send text ──
-function sendMsg() {
-  const input = document.getElementById("msg-input");
-  const text  = input.value.trim();
-  if (!text || !currentChat) return;
-  const now = new Date().toISOString();
-  appendBubble(text, "me", now, "text");
-  socket.emit("private-message", { to:currentChat, from:myEmail, message:text, type:"text" });
-  input.value = "";
-  input.style.height = "auto";
-  socket.emit("stop-typing", { to:currentChat, from:myEmail });
-}
-
-// ── Typing indicator ──
-document.getElementById("msg-input").addEventListener("input", function() {
-  this.style.height = "auto";
-  this.style.height = Math.min(this.scrollHeight,100)+"px";
-  if (!currentChat) return;
-  socket.emit("typing", { to:currentChat, from:myEmail });
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => socket.emit("stop-typing",{to:currentChat,from:myEmail}), 1500);
-});
-
-document.getElementById("msg-input").addEventListener("keydown", e => {
-  if (e.key==="Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-});
-
-// ── File upload ──
-document.getElementById("file-input").addEventListener("change", async function() {
-  const file = this.files[0];
-  if (!file || !currentChat) return;
-  const formData = new FormData();
-  formData.append("file", file);
-  try {
-    const res  = await fetch(`${SERVER}/upload`, { method:"POST", body:formData });
-    const data = await res.json();
-    if (data.success) {
-      const now = new Date().toISOString();
-      appendBubble("", "me", now, data.type, data.fileUrl, data.fileName);
-      socket.emit("private-message", {
-        to:currentChat, from:myEmail,
-        message:"", type:data.type,
-        fileUrl:data.fileUrl, fileName:data.fileName
-      });
-    }
-  } catch(e) { alert("Upload failed!"); }
-  this.value = "";
-});
-
-function logout() { localStorage.clear(); window.location.href = "index.html"; }
-
-// ── Group variables ──
-let myGroups = [];
-let currentGroup = null;
-
-// ── Load groups ──
-async function loadGroups() {
-  const res = await fetch(`${SERVER}/groups/${encodeURIComponent(myEmail)}`);
-  const data = await res.json();
-  if (data.success) {
-    myGroups = data.groups;
-    renderGroups();
-  }
-}
-
-function renderGroups() {
-  const scroll = document.getElementById('groups-scroll');
-  scroll.innerHTML = '';
-  if (!myGroups.length) {
-    scroll.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:10px;">No groups yet</div>';
-    return;
-  }
-  myGroups.forEach(g => {
-    const card = document.createElement('div');
-    card.className = 'group-card' + (currentGroup && currentGroup.id === g.id ? ' active' : '');
-    card.innerHTML = `
-      <div class="group-avatar">👥</div>
-      <div class="card-info">
-        <div class="card-name">${g.name}</div>
-        <div class="card-sub">Group</div>
-      </div>`;
-    card.onclick = () => openGroupChat(g);
-    scroll.appendChild(card);
-  });
-}
-
-// ── Open group chat ──
 async function openGroupChat(group) {
-  currentChat = null;
   currentGroup = group;
-  renderGroups();
+  currentChat = null;
   renderUsers();
+  renderGroups();
 
   document.getElementById('empty-state').style.display = 'none';
-  const cv = document.getElementById('chat-view');
+  var cv = document.getElementById('chat-view');
   cv.style.display = 'flex';
 
-  document.getElementById('ct-avatar').textContent = '👥';
-  document.getElementById('ct-avatar').className = '';
-  document.getElementById('ct-avatar').style.background = 'linear-gradient(135deg,#f59e0b,#ef4444)';
+  var ctAv = document.getElementById('ct-avatar');
+  ctAv.textContent = '👥';
+  ctAv.className = '';
+  ctAv.style.background = 'linear-gradient(135deg,#f59e0b,#ef4444)';
   document.getElementById('ct-name').textContent = group.name;
   document.getElementById('ct-status').textContent = 'Group Chat';
   document.getElementById('ct-status').className = '';
 
   socket.emit('join-group', group.id);
 
-  const res = await fetch(`${SERVER}/group-messages/${group.id}`);
+  const res  = await fetch(SERVER + '/group-messages/' + group.id);
   const data = await res.json();
-  const area = document.getElementById('messages-area');
+  var area = document.getElementById('messages-area');
   area.innerHTML = '';
 
   if (data.success && data.messages.length > 0) {
-    data.messages.forEach(m => {
+    data.messages.forEach(function(m) {
       appendGroupBubble(m.sender, m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name);
     });
   } else {
@@ -660,63 +506,131 @@ async function openGroupChat(group) {
   scrollBottom();
 }
 
-function appendGroupBubble(sender, text, who, time, type='text', fileUrl=null, fileName=null) {
-  const area = document.getElementById('messages-area');
-  const noMsg = area.querySelector('.no-msgs');
+function appendBubble(text, who, time, type, fileUrl, fileName) {
+  type = type || 'text';
+  var area = document.getElementById('messages-area');
+  var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
 
-  const group = document.createElement('div');
+  var group = document.createElement('div');
   group.className = 'msg-group ' + who;
-  const t = time ? new Date(time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
-
-  let content = '';
-  if (who === 'them') content += '<div style="font-size:11px;color:var(--accent);margin-bottom:2px;">' + sender.split('@')[0] + '</div>';
-
-    content += '<img class="img-bubble" src="' + fileUrl + '" alt="image" style="cursor:pointer" onclick="previewImg(this.src)" onerror="this.parentNode.innerHTML='📷 View Image'"/>';
-    content += '<img class="img-bubble" src="' + fileUrl + '" onclick="previewImg("' + fileUrl + '")" alt="image" onerror="this.style.display='none'"/>';
-  } else if (type === 'file' && fileUrl) {
-    content += '<a class="file-bubble" href="' + fileUrl + '" target="_blank"><span class="file-icon">📄</span><span>' + (fileName||'Download') + '</span></a>';
-  } else {
-    content += '<div class="bubble">' + escHtml(text||'') + '</div>';
-  }
-
-  group.innerHTML = content + '<div class="msg-time">' + t + '</div>';
+  var t = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var tick = who === 'me' ? '<span class="tick">✓</span>' : '';
+  var content = buildContent(text, type, fileUrl, fileName);
+  group.innerHTML = content + '<div class="msg-time">' + t + tick + '</div>';
   area.appendChild(group);
   scrollBottom();
 }
 
-// ── Socket group message ──
-socket.on('group-message', ({groupId, from, message, type, fileUrl, fileName, time}) => {
-  if (currentGroup && currentGroup.id === groupId) {
-    appendGroupBubble(from, message, from === myEmail ? 'me' : 'them', time, type, fileUrl, fileName);
-  }
-});
+function appendGroupBubble(sender, text, who, time, type, fileUrl, fileName) {
+  type = type || 'text';
+  var area = document.getElementById('messages-area');
+  var noMsg = area.querySelector('.no-msgs');
+  if (noMsg) noMsg.remove();
 
-// ── Override sendMsg for group ──
-const originalSendMsg = sendMsg;
-function sendMsg() {
-  if (currentGroup) {
-    const input = document.getElementById('msg-input');
-    const text = input.value.trim();
-    if (!text) return;
-    const now = new Date().toISOString();
-    appendGroupBubble(myEmail, text, 'me', now, 'text');
-    socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: text, type: 'text' });
-    input.value = '';
-    input.style.height = 'auto';
-  } else {
-    originalSendMsg();
-  }
+  var group = document.createElement('div');
+  group.className = 'msg-group ' + who;
+  var t = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var senderLabel = who === 'them' ? '<div class="sender-name">' + sender.split('@')[0] + '</div>' : '';
+  var content = buildContent(text, type, fileUrl, fileName);
+  group.innerHTML = senderLabel + content + '<div class="msg-time">' + t + '</div>';
+  area.appendChild(group);
+  scrollBottom();
 }
 
-// ── Create group modal ──
+function buildContent(text, type, fileUrl, fileName) {
+  if (type === 'image' && fileUrl) {
+    return '<img class="img-bubble" src="' + fileUrl + '" alt="image" onclick="previewImg(this.src)"/>';
+  }
+  if (type === 'video' && fileUrl) {
+    return '<video class="video-bubble" controls src="' + fileUrl + '"></video>';
+  }
+  if (type === 'audio' && fileUrl) {
+    return '<audio class="audio-bubble" controls src="' + fileUrl + '"></audio>';
+  }
+  if (type === 'file' && fileUrl) {
+    return '<a class="file-bubble" href="' + fileUrl + '" target="_blank" download="' + (fileName || 'file') + '"><span class="file-icon">📄</span><span>' + escHtml(fileName || 'Download') + '</span></a>';
+  }
+  return '<div class="bubble">' + escHtml(text || '') + '</div>';
+}
+
+function previewImg(src) {
+  document.getElementById('preview-img').src = src;
+  document.getElementById('img-preview-overlay').classList.add('show');
+}
+
+function sendMsg() {
+  var input = document.getElementById('msg-input');
+  var text  = input.value.trim();
+  if (!text) return;
+
+  var now = new Date().toISOString();
+
+  if (currentGroup) {
+    appendGroupBubble(myEmail, text, 'me', now, 'text', null, null);
+    socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: text, type: 'text' });
+  } else if (currentChat) {
+    appendBubble(text, 'me', now, 'text', null, null);
+    socket.emit('private-message', { to: currentChat, from: myEmail, message: text, type: 'text' });
+    socket.emit('stop-typing', { to: currentChat, from: myEmail });
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+}
+
+document.getElementById('msg-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+
+document.getElementById('msg-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  if (!currentChat) return;
+  socket.emit('typing', { to: currentChat, from: myEmail });
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(function() {
+    socket.emit('stop-typing', { to: currentChat, from: myEmail });
+  }, 1500);
+});
+
+// File upload
+document.getElementById('file-input').addEventListener('change', async function() {
+  var file = this.files[0];
+  if (!file || (!currentChat && !currentGroup)) return;
+  var formData = new FormData();
+  formData.append('file', file);
+  try {
+    var res  = await fetch(SERVER + '/upload', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.success) {
+      var now = new Date().toISOString();
+      if (currentGroup) {
+        appendGroupBubble(myEmail, '', 'me', now, data.type, data.fileUrl, data.fileName);
+        socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
+      } else {
+        appendBubble('', 'me', now, data.type, data.fileUrl, data.fileName);
+        socket.emit('private-message', { to: currentChat, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
+      }
+    } else {
+      alert('Upload failed!');
+    }
+  } catch(e) { alert('Upload failed!'); }
+  this.value = '';
+});
+
+// Group modal
 function openCreateGroup() {
-  const list = document.getElementById('members-checklist');
+  var list = document.getElementById('members-checklist');
   list.innerHTML = '';
-  allUsers.forEach(email => {
-    const div = document.createElement('label');
+  allUsers.forEach(function(email) {
+    var div = document.createElement('label');
     div.className = 'member-check';
-    div.innerHTML = '<input type="checkbox" value="' + email + '"/> ' + email;
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = email;
+    div.appendChild(cb);
+    div.appendChild(document.createTextNode(' ' + email));
     list.appendChild(div);
   });
   document.getElementById('group-modal').classList.add('show');
@@ -728,23 +642,31 @@ function closeCreateGroup() {
 }
 
 async function createGroup() {
-  const name = document.getElementById('group-name-input').value.trim();
-  if (!name) return alert('Group name வேணும்!');
-  const checked = [...document.querySelectorAll('#members-checklist input:checked')].map(i => i.value);
-  if (!checked.length) return alert('குறைந்தது ஒரு member select பண்ணு!');
+  var name = document.getElementById('group-name-input').value.trim();
+  if (!name) { alert('Group name வேணும்!'); return; }
+  var checked = [];
+  document.querySelectorAll('#members-checklist input:checked').forEach(function(i) { checked.push(i.value); });
+  if (!checked.length) { alert('குறைந்தது ஒரு member select பண்ணு!'); return; }
 
-  const res = await fetch(`${SERVER}/groups`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, members: checked, created_by: myEmail })
-  });
-  const data = await res.json();
-  if (data.success) {
-    closeCreateGroup();
-    await loadGroups();
-    const newGroup = myGroups.find(g => g.id === data.groupId);
-    if (newGroup) openGroupChat(newGroup);
-  }
+  try {
+    var res  = await fetch(SERVER + '/groups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, members: checked, created_by: myEmail })
+    });
+    var data = await res.json();
+    if (data.success) {
+      closeCreateGroup();
+      await loadGroups();
+      var newGroup = myGroups.find(function(g) { return g.id === data.groupId; });
+      if (newGroup) openGroupChat(newGroup);
+    }
+  } catch(e) { alert('Group create failed!'); }
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = 'index.html';
 }
 
 loadUsers();
