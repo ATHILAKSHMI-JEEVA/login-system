@@ -679,10 +679,10 @@ function closeCreateGroup() {
 
 async function createGroup() {
   var name = document.getElementById('group-name-input').value.trim();
-  if (!name) { alert('Group name வேணும்!'); return; }
+  if (!name) { alert('Name is required!'); return; }
   var checked = [];
   document.querySelectorAll('#members-checklist input:checked').forEach(function(i) { checked.push(i.value); });
-  if (!checked.length) { alert('குறைந்தது ஒரு member select பண்ணு!'); return; }
+  if (!checked.length) { alert('Select at least one member!'); return; }
 
   try {
     var res  = await fetch(SERVER + '/groups', {
