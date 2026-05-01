@@ -187,6 +187,18 @@ body::before {
 .pill-blue   { background: rgba(68,147,248,0.12); color: var(--accent);  border: 1px solid rgba(68,147,248,0.2); }
 .pill-purple { background: rgba(163,113,247,0.12); color: #a371f7;       border: 1px solid rgba(163,113,247,0.2); }
 
+/* chat button */
+.btn-chat {
+  background: linear-gradient(135deg, #06d6a0, #3b82f6);
+  color: white;
+  display: inline-flex; align-items: center; gap: 8px;
+  text-decoration: none;
+  padding: 11px 20px; border-radius: 8px;
+  font-family: var(--sans); font-size: 14px; font-weight: 600;
+  transition: all 0.2s; border: none; cursor: pointer;
+}
+.btn-chat:hover { opacity: 0.88; transform: translateY(-1px); }
+
 /* get data button */
 .action-row { margin-top: 24px; display: flex; gap: 10px; }
 .btn {
@@ -202,19 +214,6 @@ body::before {
   border-radius: 8px; font-size: 13px; font-family: var(--mono);
   color: var(--success); display: none;
 }
-
-
-/* chat button */
-.btn-chat {
-  background: linear-gradient(135deg, #06d6a0, #3b82f6);
-  color: white;
-  display: flex; align-items: center; gap: 8px;
-  text-decoration: none;
-  padding: 11px 20px; border-radius: 8px;
-  font-family: var(--sans); font-size: 14px; font-weight: 600;
-  transition: all 0.2s; border: none; cursor: pointer;
-}
-.btn-chat:hover { opacity: 0.88; transform: translateY(-1px); }
 
 /* toast */
 .toast {
@@ -256,7 +255,7 @@ body::before {
       </div>
       <div class="status-dot"></div>
     </div>
-    <a href="chat.html" style="padding:8px 16px;background:rgba(6,214,160,0.12);border:1px solid rgba(6,214,160,0.3);border-radius:8px;color:#06d6a0;font-size:13px;font-weight:600;text-decoration:none;transition:all 0.2s;">💬 Chat</a>
+    <a href="chat.html" style="padding:7px 14px;background:rgba(6,214,160,0.12);border:1px solid rgba(6,214,160,0.3);border-radius:8px;color:#06d6a0;font-size:13px;font-weight:600;text-decoration:none;">💬 Chat</a>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 </nav>
@@ -442,13 +441,17 @@ function loadSession() {
 }
 
 // ── GET SECURE DATA FROM BACKEND ──
+const SERVER = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000"
+  : "https://login-system-backend-i3b8.onrender.com";
+
 async function loadSecureData() {
   const token  = localStorage.getItem('token');
   const result = document.getElementById('data-result');
   result.style.display = 'block';
   result.textContent   = '⏳ Fetching secure data...';
   try {
-    const res  = await fetch('http://localhost:5000/home', { headers: { authorization: token } });
+    const res  = await fetch(`${SERVER}/home`, { headers: { authorization: token } });
     const data = await res.json();
     result.textContent = '✅ ' + data.message;
   } catch {
