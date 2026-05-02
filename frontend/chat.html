@@ -537,12 +537,13 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 
 /* ── Input area ── */
 #input-row{
-  height:var(--input-h);
+  min-height:var(--input-h);
   padding:10px 14px;
   border-top:1px solid var(--border);
   background:var(--surface);
   display:flex;align-items:center;gap:8px;
   position:relative;flex-shrink:0;
+  overflow:hidden;
 }
 .icon-btn{
   width:40px;height:40px;border-radius:50%;
@@ -626,9 +627,9 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 #rec-bar.show{display:flex;}
 #rec-timer{font-size:13px;font-weight:700;color:var(--danger);min-width:38px;flex-shrink:0;}
-#rec-dot{font-size:13px;flex-shrink:0;animation:blink 1s infinite;}
+#rec-dot{font-size:11px;flex-shrink:0;animation:blink 1s infinite;line-height:1;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
-#rec-wave{flex:1;height:28px;}
+#rec-wave{flex:1;height:28px;min-width:0;max-width:100%;display:block;}
 #rec-cancel{background:rgba(241,92,109,0.15);border:none;color:var(--danger);cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s;}
 #rec-cancel:hover{background:rgba(241,92,109,0.3);}
 #rec-stop-btn{background:var(--accent);border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,168,132,0.3);transition:background 0.15s,transform 0.1s;}
@@ -992,7 +993,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
           <span id="rec-timer">0:00</span>
-          <canvas id="rec-wave" width="160" height="28"></canvas>
+          <canvas id="rec-wave" height="28"></canvas>
           <span id="rec-dot">🔴</span>
           <button id="rec-stop-btn" onclick="stopRecording()" title="Stop & Send">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -1760,6 +1761,9 @@ function startRecording() {
     document.getElementById('voice-btn').style.display = 'none';
     document.getElementById('attach-btn').style.display = 'none';
     document.getElementById('rec-bar').classList.add('show');
+    // Set canvas width to match available space
+    var canvas = document.getElementById('rec-wave');
+    canvas.width = Math.max(80, canvas.offsetWidth || 120);
     updateRecTimer();
     recTimerInterval = setInterval(function() { recSeconds++; updateRecTimer(); }, 1000);
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
