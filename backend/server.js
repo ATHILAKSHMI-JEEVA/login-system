@@ -199,7 +199,7 @@ app.post("/send-otp", async (req, res) => {
   });
   try {
     await transporter.sendMail({
-      from: `"YourApp" <${process.env.MAIL_USER}>`,
+      from: `"" <${process.env.MAIL_USER}>`,
       to: email,
       subject: "Your OTP Code",
       html: `<h2>Your OTP: <strong>${otp}</strong></h2><p>Valid for 10 minutes.</p>`
