@@ -64,6 +64,17 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   display:flex;align-items:center;justify-content:center;
   font-weight:700;font-size:14px;color:#fff;
   overflow:hidden;flex-shrink:0;cursor:pointer;
+  position:relative;transition:filter 0.2s;
+}
+#topbar-avatar:hover{filter:brightness(0.75);}
+#topbar-avatar-wrap{position:relative;cursor:pointer;flex-shrink:0;}
+#topbar-avatar-wrap:hover #topbar-edit-icon{opacity:1;}
+#topbar-edit-icon{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(0,0,0,0.45);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 0.2s;pointer-events:none;
+  font-size:13px;
 }
 #topbar-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 #topbar-name{font-size:14px;font-weight:600;color:var(--text);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -809,7 +820,10 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
     YourApp
   </div>
   <div id="topbar-right">
-    <div id="topbar-avatar">?</div>
+    <div id="topbar-avatar-wrap" onclick="window.location.href='profile.html'" title="Edit Profile">
+      <div id="topbar-avatar">?</div>
+      <div id="topbar-edit-icon">✏️</div>
+    </div>
     <span id="topbar-name">-</span>
     <a href="profile.html" class="profile-link">👤 Profile</a>
     <button id="logout-btn" onclick="logout()">Logout</button>
@@ -1457,6 +1471,7 @@ function appendBubble(id, text, who, time, type, fileUrl, fileName, deletedForEv
     });
   }
   area.appendChild(group);
+  group.querySelectorAll('audio').forEach(function(a) { if(a.id) setupAudio(a.id.replace('_el','')); });
   scrollBottom();
 }
 
@@ -1492,6 +1507,7 @@ function appendGroupBubble(id, sender, text, who, time, type, fileUrl, fileName,
     });
   }
   area.appendChild(group);
+  group.querySelectorAll('audio').forEach(function(a) { if(a.id) setupAudio(a.id.replace('_el','')); });
   scrollBottom();
 }
 
@@ -1523,30 +1539,39 @@ function buildContent(text, type, fileUrl, fileName) {
   return '<div class="bubble">' + escHtml(text || '') + '</div>';
 }
 
+function setupAudio(uid) {
+  var audio = document.getElementById(uid+'_el');
+  if (!audio || audio._setup) return;
+  audio._setup = true;
+  function trySetDur() {
+    var d = document.getElementById(uid+'_dur');
+    if (d && audio.duration && isFinite(audio.duration)) d.textContent = fmtSec(audio.duration);
+  }
+  audio.addEventListener('loadedmetadata', trySetDur);
+  audio.addEventListener('durationchange', trySetDur);
+  audio.addEventListener('canplay', trySetDur);
+  audio.addEventListener('timeupdate', function() {
+    var s = document.getElementById(uid+'_seek');
+    var c = document.getElementById(uid+'_cur');
+    if (s && audio.duration) s.value = (audio.currentTime / audio.duration) * 100;
+    if (c) c.textContent = fmtSec(audio.currentTime);
+    trySetDur();
+  });
+  audio.addEventListener('ended', function() {
+    var icon = document.getElementById(uid+'_icon');
+    if (icon) icon.innerHTML = '<path d="M5 3l14 9-14 9V3z"/>';
+    var s = document.getElementById(uid+'_seek'); if (s) s.value = 0;
+    var c = document.getElementById(uid+'_cur'); if (c) c.textContent = '0:00';
+  });
+  audio.load();
+}
+
 function toggleAudio(uid) {
   var audio = document.getElementById(uid+'_el');
   var icon  = document.getElementById(uid+'_icon');
   if (!audio) return;
-  if (!audio._setup) {
-    audio._setup = true;
-    audio.addEventListener('loadedmetadata', function() {
-      var d = document.getElementById(uid+'_dur');
-      if (d && audio.duration && isFinite(audio.duration)) d.textContent = fmtSec(audio.duration);
-    });
-    audio.addEventListener('timeupdate', function() {
-      var s = document.getElementById(uid+'_seek');
-      var c = document.getElementById(uid+'_cur');
-      if (s && audio.duration) s.value = (audio.currentTime / audio.duration) * 100;
-      if (c) c.textContent = fmtSec(audio.currentTime);
-    });
-    audio.addEventListener('ended', function() {
-      icon.innerHTML = '<path d="M5 3l14 9-14 9V3z"/>';
-      var s = document.getElementById(uid+'_seek'); if (s) s.value = 0;
-      var c = document.getElementById(uid+'_cur'); if (c) c.textContent = '0:00';
-    });
-  }
+  setupAudio(uid);
   if (audio.paused) {
-    // Pause all others
     document.querySelectorAll('audio').forEach(function(a) {
       if (a !== audio && !a.paused) {
         a.pause();
@@ -1788,15 +1813,23 @@ function drawWave() {
   var ctx = canvas.getContext('2d');
   var bufLen = analyser.frequencyBinCount;
   var dataArr = new Uint8Array(bufLen);
+  var BAR_W = 3, GAP = 2, TOTAL = BAR_W + GAP;
+  var numBars = Math.floor(canvas.width / TOTAL);
+  var centerY = canvas.height / 2;
   function frame() {
     animFrameId = requestAnimationFrame(frame);
     analyser.getByteFrequencyData(dataArr);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    var barW = (canvas.width / bufLen) * 2, x = 0;
-    for (var i = 0; i < bufLen; i++) {
-      var barH = (dataArr[i] / 255) * canvas.height;
-      ctx.fillStyle = 'rgba(0,168,132,' + (0.4 + (dataArr[i]/255)*0.6) + ')';
-      ctx.fillRect(x, canvas.height - barH, barW - 1, barH); x += barW;
+    for (var i = 0; i < numBars; i++) {
+      var idx = Math.floor((i / numBars) * bufLen);
+      var val = dataArr[idx] / 255;
+      var barH = Math.max(3, val * (canvas.height - 4));
+      var x = i * TOTAL;
+      var alpha = 0.5 + val * 0.5;
+      ctx.fillStyle = 'rgba(0,168,132,' + alpha + ')';
+      ctx.beginPath();
+      ctx.roundRect(x, centerY - barH/2, BAR_W, barH, 2);
+      ctx.fill();
     }
   }
   frame();
