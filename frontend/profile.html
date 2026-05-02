@@ -3,511 +3,626 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>YourApp — Profile</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<title>Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;600;700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --bg: #06090f;
-  --surface: #0c1220;
-  --card: #111827;
-  --border: #1f2d45;
-  --text: #e8f0fe;
-  --muted: #4a6080;
-  --accent: #4f8ef7;
-  --accent2: #00e5a0;
-  --danger: #f25c5c;
-  --display: 'Syne', sans-serif;
-  --body: 'DM Sans', sans-serif;
+  --bg: #050810;
+  --s1: #0a0f1e;
+  --s2: #0f1628;
+  --border: #1a2540;
+  --text: #e4ecff;
+  --muted: #3d5280;
+  --soft: #8899bb;
+  --accent: #4f8dff;
+  --green: #00e5a0;
+  --purple: #a78bfa;
+  --red: #ff5f5f;
+  --display: 'Cabinet Grotesk', sans-serif;
+  --body: 'Instrument Sans', sans-serif;
 }
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--body);
   min-height: 100vh;
   background-image:
-    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(79,142,247,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(0,229,160,0.05) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(79,141,255,0.08), transparent),
+    radial-gradient(ellipse 40% 30% at 80% 60%, rgba(167,139,250,0.04), transparent);
 }
 
-/* TOPBAR */
-#topbar {
-  position: sticky; top: 0; z-index: 50;
-  height: 58px;
-  background: rgba(6,9,15,0.85);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  height: 60px;
   display: flex; align-items: center;
-  padding: 0 28px; gap: 14px;
+  padding: 0 24px; gap: 12px;
+  background: rgba(5,8,16,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
 }
-.logo {
-  font-family: var(--display);
-  font-size: 18px; font-weight: 800;
-  color: var(--accent);
-  letter-spacing: -0.5px;
-  display: flex; align-items: center; gap: 8px;
-}
-.logo span { color: var(--text); }
-.back-btn {
-  margin-left: auto;
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 16px;
-  background: transparent;
+.nav-back {
+  width: 36px; height: 36px;
+  border-radius: 10px;
   border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 8px;
-  font-family: var(--body);
-  font-size: 13px;
+  background: transparent;
+  color: var(--soft);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px;
   text-decoration: none;
   transition: all 0.2s;
 }
-.back-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* LAYOUT */
-.page {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 40px 20px 60px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.nav-back:hover { border-color: var(--accent); color: var(--accent); }
+.nav-title {
+  font-family: var(--display);
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.3px;
 }
+.nav-save {
+  margin-left: auto;
+  padding: 8px 18px;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--body);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-save:hover { background: #6ba3ff; }
+.nav-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* HERO CARD */
-.hero-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 24px;
-  padding: 40px 32px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+/* COVER + AVATAR */
+.cover-section {
   position: relative;
-  overflow: hidden;
+  height: 180px;
+  background: linear-gradient(135deg, #0d1a3a 0%, #111827 40%, #0a1628 100%);
+  overflow: visible;
 }
-.hero-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 120px;
-  background: linear-gradient(135deg, rgba(79,142,247,0.12), rgba(0,229,160,0.08));
+.cover-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(79,141,255,0.2), rgba(167,139,250,0.15), rgba(0,229,160,0.1));
+}
+.cover-pattern {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+.cover-edit {
+  position: absolute; top: 12px; right: 12px;
+  width: 34px; height: 34px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px;
+  color: var(--soft);
+  backdrop-filter: blur(8px);
 }
 
-/* AVATAR */
-.avatar-wrap {
+.avatar-section {
   position: relative;
-  margin-bottom: 16px;
-  z-index: 1;
+  display: flex;
+  padding: 0 24px;
+  margin-top: -54px;
+  margin-bottom: 0;
+  align-items: flex-end;
+  gap: 16px;
+  z-index: 5;
 }
 .avatar-ring {
   width: 108px; height: 108px;
   border-radius: 50%;
   padding: 3px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  background: linear-gradient(135deg, var(--accent), var(--purple), var(--green));
   cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
 }
 .avatar-inner {
   width: 100%; height: 100%;
   border-radius: 50%;
-  background: var(--card);
+  background: var(--s2);
+  border: 4px solid var(--bg);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--display);
-  font-size: 40px; font-weight: 800;
-  color: #fff;
+  font-size: 38px; font-weight: 900;
   overflow: hidden;
   position: relative;
 }
-.avatar-inner img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
+.avatar-inner img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .avatar-overlay {
   position: absolute; inset: 0;
   background: rgba(0,0,0,0.55);
   border-radius: 50%;
   display: none;
   align-items: center; justify-content: center;
-  font-size: 22px;
+  font-size: 20px;
 }
 .avatar-ring:hover .avatar-overlay { display: flex; }
-.avatar-edit-badge {
-  position: absolute;
-  bottom: 4px; right: 4px;
-  width: 28px; height: 28px;
+.cam-badge {
+  position: absolute; bottom: 6px; right: 2px;
+  width: 26px; height: 26px;
   background: var(--accent);
+  border: 2px solid var(--bg);
   border-radius: 50%;
-  border: 2px solid var(--surface);
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px;
-  cursor: pointer;
+  font-size: 11px; cursor: pointer;
 }
 #avatar-input { display: none; }
-
-.hero-name {
+.avatar-info { padding-bottom: 8px; }
+.avatar-info h1 {
   font-family: var(--display);
-  font-size: 24px; font-weight: 800;
+  font-size: 22px; font-weight: 800;
   letter-spacing: -0.5px;
-  z-index: 1;
+  line-height: 1.2;
 }
-.hero-email {
-  font-size: 13px; color: var(--muted);
-  margin-top: 4px; margin-bottom: 20px;
-  z-index: 1;
+.avatar-info p { font-size: 13px; color: var(--soft); margin-top: 2px; }
+.online-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(0,229,160,0.1);
+  border: 1px solid rgba(0,229,160,0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px; color: var(--green);
+  margin-top: 6px; font-weight: 600;
 }
+.online-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
 
-/* STATS */
-.stats {
-  display: flex; gap: 12px;
-  width: 100%; z-index: 1;
+/* STATS ROW */
+.stats-row {
+  display: flex; gap: 1px;
+  background: var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 20px 24px;
 }
 .stat {
   flex: 1;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px;
+  background: var(--s1);
+  padding: 16px 12px;
   text-align: center;
 }
 .stat-num {
   font-family: var(--display);
-  font-size: 24px; font-weight: 800;
+  font-size: 22px; font-weight: 800;
   color: var(--accent);
-  line-height: 1;
 }
-.stat-label {
-  font-size: 10px; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 1px;
-  margin-top: 4px;
+.stat-label { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+/* SECTIONS */
+.section { margin: 0 16px 16px; }
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 8px 12px;
+}
+.section-icon {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 14px; font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.section-body {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-/* SECTION CARD */
-.section-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 24px;
+/* LIST ITEM */
+.list-item {
+  display: flex; align-items: center;
+  padding: 14px 16px;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+  position: relative;
 }
-.section-head {
-  font-family: var(--display);
-  font-size: 13px; font-weight: 700;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px;
+.list-item:last-child { border-bottom: none; }
+.list-item:hover { background: rgba(255,255,255,0.02); }
+.list-item.editing { background: rgba(79,141,255,0.04); }
+.item-icon {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
 }
-.section-head::after {
-  content: '';
-  flex: 1; height: 1px;
-  background: var(--border);
+.item-content { flex: 1; overflow: hidden; }
+.item-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
+.item-value {
+  font-size: 14px; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.item-value.placeholder { color: var(--muted); font-style: italic; }
+.item-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--body);
+  outline: none;
+  padding: 0;
+}
+.item-input::placeholder { color: var(--muted); }
+textarea.item-input { resize: none; height: 56px; line-height: 1.5; }
+.item-arrow { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+.item-badge {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 6px;
 }
 
 /* COLOR PICKER */
-.color-grid {
-  display: flex; gap: 10px; flex-wrap: wrap;
+.color-section {
+  padding: 16px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
+.color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .color-dot {
-  width: 40px; height: 40px;
+  width: 42px; height: 42px;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
   transition: all 0.2s;
   position: relative;
 }
-.color-dot:hover { transform: scale(1.12); }
-.color-dot.selected {
-  border-color: #fff;
-  transform: scale(1.12);
-  box-shadow: 0 0 0 2px var(--accent);
-}
-.color-dot.selected::after {
-  content: '✓';
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; color: #fff; font-weight: 700;
-}
-.c0 { background: linear-gradient(135deg,#3b82f6,#8b5cf6); }
-.c1 { background: linear-gradient(135deg,#06d6a0,#3b82f6); }
-.c2 { background: linear-gradient(135deg,#f59e0b,#ef4444); }
-.c3 { background: linear-gradient(135deg,#ec4899,#8b5cf6); }
-.c4 { background: linear-gradient(135deg,#10b981,#06d6a0); }
-.c5 { background: linear-gradient(135deg,#f97316,#f59e0b); }
-.c6 { background: linear-gradient(135deg,#6366f1,#3b82f6); }
-.c7 { background: linear-gradient(135deg,#14b8a6,#3b82f6); }
+.color-dot:hover { transform: scale(1.1); }
+.color-dot.selected { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px var(--accent); }
+.color-dot.selected::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; font-weight:700; }
+.c0{background:linear-gradient(135deg,#3b82f6,#8b5cf6);}
+.c1{background:linear-gradient(135deg,#06d6a0,#3b82f6);}
+.c2{background:linear-gradient(135deg,#f59e0b,#ef4444);}
+.c3{background:linear-gradient(135deg,#ec4899,#8b5cf6);}
+.c4{background:linear-gradient(135deg,#10b981,#06d6a0);}
+.c5{background:linear-gradient(135deg,#f97316,#f59e0b);}
+.c6{background:linear-gradient(135deg,#6366f1,#3b82f6);}
+.c7{background:linear-gradient(135deg,#14b8a6,#3b82f6);}
 
-/* FORM */
-.form-group { margin-bottom: 16px; }
-.form-label {
-  font-size: 12px; font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.8px;
-  margin-bottom: 8px; display: block;
+/* DANGER */
+.danger-section {
+  margin: 0 16px 32px;
 }
-.form-input {
-  width: 100%;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: var(--text);
-  font-size: 14px; font-family: var(--body);
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-.form-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.1);
-}
-.form-input::placeholder { color: var(--muted); }
-textarea.form-input { resize: none; height: 90px; line-height: 1.6; }
-
-/* SAVE BUTTON */
-.save-btn {
+.danger-btn {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  border: none;
+  background: rgba(255,95,95,0.08);
+  border: 1px solid rgba(255,95,95,0.2);
   border-radius: 14px;
-  color: #fff;
-  font-family: var(--display);
-  font-size: 15px; font-weight: 700;
+  color: var(--red);
+  font-family: var(--body);
+  font-size: 14px; font-weight: 600;
   cursor: pointer;
-  letter-spacing: 0.3px;
-  transition: opacity 0.2s, transform 0.15s;
-  position: relative;
-  overflow: hidden;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
 }
-.save-btn::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: rgba(255,255,255,0.1);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.save-btn:hover::before { opacity: 1; }
-.save-btn:active { transform: scale(0.98); }
-.save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.danger-btn:hover { background: rgba(255,95,95,0.15); }
 
-/* SUCCESS */
+/* TOAST */
 .toast {
   position: fixed;
-  bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
-  background: var(--accent2);
-  color: #06090f;
-  padding: 12px 24px;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--green);
+  color: #050810;
+  padding: 11px 22px;
   border-radius: 40px;
-  font-weight: 700; font-size: 14px;
+  font-weight: 700; font-size: 13px;
   font-family: var(--display);
   transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
   z-index: 999;
   display: flex; align-items: center; gap: 8px;
+  white-space: nowrap;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 480px) {
+  .avatar-info h1 { font-size: 18px; }
+}
 </style>
 </head>
 <body>
 
-<div id="topbar">
-  <div class="logo">💬 <span>YourApp</span></div>
-  <a href="chat.html" class="back-btn">← Back to Chat</a>
+<nav>
+  <a href="chat.html" class="nav-back">←</a>
+  <span class="nav-title">Profile</span>
+  <button class="nav-save" id="nav-save" onclick="saveProfile()">Save</button>
+</nav>
+
+<!-- COVER -->
+<div class="cover-section">
+  <div class="cover-gradient"></div>
+  <div class="cover-pattern"></div>
 </div>
 
-<div class="page">
-
-  <!-- HERO -->
-  <div class="hero-card">
-    <div class="avatar-wrap">
-      <div class="avatar-ring" onclick="document.getElementById('avatar-input').click()">
-        <div class="avatar-inner" id="avatar-inner">
-          <span id="avatar-letter">?</span>
-          <div class="avatar-overlay">📷</div>
-        </div>
-      </div>
-      <div class="avatar-edit-badge" onclick="document.getElementById('avatar-input').click()">✏️</div>
+<!-- AVATAR ROW -->
+<div class="avatar-section">
+  <div class="avatar-ring" onclick="document.getElementById('avatar-input').click()">
+    <div class="avatar-inner" id="avatar-inner">
+      <span id="avatar-letter">?</span>
+      <div class="avatar-overlay">📷</div>
     </div>
-    <input type="file" id="avatar-input" accept="image/*"/>
-    <div class="hero-name" id="hero-name">Loading...</div>
-    <div class="hero-email" id="hero-email">-</div>
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-num" id="stat-msg">—</div>
-        <div class="stat-label">Messages</div>
+    <div class="cam-badge">📷</div>
+  </div>
+  <input type="file" id="avatar-input" accept="image/*"/>
+  <div class="avatar-info">
+    <h1 id="hero-name">Loading...</h1>
+    <p id="hero-email">-</p>
+    <div class="online-pill"><div class="online-dot"></div> Active Now</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-num" id="s-msg">—</div><div class="stat-label">Messages</div></div>
+  <div class="stat"><div class="stat-num" id="s-grp">0</div><div class="stat-label">Groups</div></div>
+  <div class="stat"><div class="stat-num" id="s-since">May</div><div class="stat-label">Joined</div></div>
+</div>
+
+<!-- ABOUT -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(79,141,255,0.12);color:var(--accent);">👤</div>
+    <span class="section-title">About</span>
+  </div>
+  <div class="section-body">
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(79,141,255,0.1);">✏️</div>
+      <div class="item-content">
+        <div class="item-label">Display Name</div>
+        <input type="text" id="name-input" class="item-input" placeholder="Your name..."/>
       </div>
-      <div class="stat">
-        <div class="stat-num" id="stat-grp">0</div>
-        <div class="stat-label">Groups</div>
+    </div>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(0,229,160,0.1);">💬</div>
+      <div class="item-content">
+        <div class="item-label">Bio</div>
+        <textarea id="bio-input" class="item-input" placeholder="Hey there! I am using YourApp."></textarea>
       </div>
-      <div class="stat">
-        <div class="stat-num" id="stat-since">—</div>
-        <div class="stat-label">Member Since</div>
+    </div>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(167,139,250,0.1);">📧</div>
+      <div class="item-content">
+        <div class="item-label">Email</div>
+        <div class="item-value" id="email-display">-</div>
+      </div>
+    </div>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(251,191,36,0.1);">📅</div>
+      <div class="item-content">
+        <div class="item-label">Member Since</div>
+        <div class="item-value" id="joined-display">May 2026</div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- COLOR -->
-  <div class="section-card">
-    <div class="section-head">🎨 Avatar Color</div>
-    <div class="color-grid" id="color-grid"></div>
+<!-- CONTACT INFO -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(0,229,160,0.12);color:var(--green);">📞</div>
+    <span class="section-title">Contact Info</span>
   </div>
-
-  <!-- EDIT -->
-  <div class="section-card">
-    <div class="section-head">✏️ Edit Profile</div>
-    <div class="form-group">
-      <label class="form-label">Display Name</label>
-      <input type="text" id="name-input" class="form-input" placeholder="Your name..."/>
+  <div class="section-body">
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(0,229,160,0.1);">📱</div>
+      <div class="item-content">
+        <div class="item-label">Phone</div>
+        <input type="tel" id="phone-input" class="item-input" placeholder="Add phone number..."/>
+      </div>
     </div>
-    <div class="form-group" style="margin-bottom:24px;">
-      <label class="form-label">Bio</label>
-      <textarea id="bio-input" class="form-input" placeholder="Tell something about yourself..."></textarea>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(79,141,255,0.1);">🌐</div>
+      <div class="item-content">
+        <div class="item-label">Website</div>
+        <input type="url" id="website-input" class="item-input" placeholder="yourwebsite.com"/>
+      </div>
     </div>
-    <button class="save-btn" id="save-btn" onclick="saveProfile()">💾 Save Changes</button>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(167,139,250,0.1);">📍</div>
+      <div class="item-content">
+        <div class="item-label">Location</div>
+        <input type="text" id="location-input" class="item-input" placeholder="City, Country"/>
+      </div>
+    </div>
   </div>
+</div>
 
+<!-- AVATAR COLOR -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24;">🎨</div>
+    <span class="section-title">Avatar Color</span>
+  </div>
+  <div class="color-section">
+    <div style="font-size:12px;color:var(--muted);">Choose your default avatar color when no photo is set</div>
+    <div class="color-row" id="color-grid"></div>
+  </div>
+</div>
+
+<!-- PRIVACY -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(167,139,250,0.12);color:var(--purple);">🔒</div>
+    <span class="section-title">Privacy</span>
+  </div>
+  <div class="section-body">
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(0,229,160,0.1);">👁️</div>
+      <div class="item-content">
+        <div class="item-label">Last Seen</div>
+        <div class="item-value">Everyone</div>
+      </div>
+      <span class="item-arrow">›</span>
+    </div>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(79,141,255,0.1);">🖼️</div>
+      <div class="item-content">
+        <div class="item-label">Profile Photo</div>
+        <div class="item-value">Everyone</div>
+      </div>
+      <span class="item-arrow">›</span>
+    </div>
+    <div class="list-item">
+      <div class="item-icon" style="background:rgba(251,191,36,0.1);">💬</div>
+      <div class="item-content">
+        <div class="item-label">Status</div>
+        <div class="item-value">My Contacts</div>
+      </div>
+      <span class="item-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- LOGOUT -->
+<div class="danger-section">
+  <button class="danger-btn" onclick="doLogout()">🚪 Log Out</button>
 </div>
 
 <div class="toast" id="toast">✅ Profile saved!</div>
 
 <script>
-const SERVER  = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+const SERVER  = window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
   ? 'http://localhost:5000'
   : 'https://login-system-backend-i3b8.onrender.com';
 
 const myEmail = localStorage.getItem('email');
-const token   = localStorage.getItem('token');
 if (!myEmail) window.location.href = 'index.html';
 
-document.getElementById('hero-email').textContent = myEmail || '';
+document.getElementById('hero-email').textContent = myEmail||'';
+document.getElementById('email-display').textContent = myEmail||'';
 
 let selectedColor = 'av0';
 let newAvatarFile = null;
-
 const colorMap = {
-  av0: 'linear-gradient(135deg,#3b82f6,#8b5cf6)',
-  av1: 'linear-gradient(135deg,#06d6a0,#3b82f6)',
-  av2: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-  av3: 'linear-gradient(135deg,#ec4899,#8b5cf6)',
-  av4: 'linear-gradient(135deg,#10b981,#06d6a0)',
-  av5: 'linear-gradient(135deg,#f97316,#f59e0b)',
-  av6: 'linear-gradient(135deg,#6366f1,#3b82f6)',
-  av7: 'linear-gradient(135deg,#14b8a6,#3b82f6)'
+  av0:'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+  av1:'linear-gradient(135deg,#06d6a0,#3b82f6)',
+  av2:'linear-gradient(135deg,#f59e0b,#ef4444)',
+  av3:'linear-gradient(135deg,#ec4899,#8b5cf6)',
+  av4:'linear-gradient(135deg,#10b981,#06d6a0)',
+  av5:'linear-gradient(135deg,#f97316,#f59e0b)',
+  av6:'linear-gradient(135deg,#6366f1,#3b82f6)',
+  av7:'linear-gradient(135deg,#14b8a6,#3b82f6)'
 };
 
-// Build color grid
+// Color grid
 var grid = document.getElementById('color-grid');
-for (var i = 0; i < 8; i++) {
-  (function(idx) {
-    var dot = document.createElement('div');
-    dot.className = 'color-dot c' + idx + (idx === 0 ? ' selected' : '');
-    dot.dataset.color = 'av' + idx;
-    dot.onclick = function() {
-      document.querySelectorAll('.color-dot').forEach(function(d) { d.classList.remove('selected'); });
-      dot.classList.add('selected');
-      selectedColor = 'av' + idx;
-      if (!newAvatarFile && !document.getElementById('avatar-inner').querySelector('img')) {
-        document.getElementById('avatar-inner').style.background = colorMap[selectedColor];
+for (var i=0;i<8;i++) {
+  (function(idx){
+    var d=document.createElement('div');
+    d.className='color-dot c'+idx+(idx===0?' selected':'');
+    d.dataset.color='av'+idx;
+    d.onclick=function(){
+      document.querySelectorAll('.color-dot').forEach(function(x){x.classList.remove('selected');});
+      d.classList.add('selected');
+      selectedColor='av'+idx;
+      if (!newAvatarFile&&!document.getElementById('avatar-inner').querySelector('img')) {
+        document.getElementById('avatar-inner').style.background=colorMap[selectedColor];
       }
     };
-    grid.appendChild(dot);
+    grid.appendChild(d);
   })(i);
 }
 
-// Avatar image preview
-document.getElementById('avatar-input').onchange = function() {
-  var file = this.files[0];
-  if (!file) return;
-  newAvatarFile = file;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var inner = document.getElementById('avatar-inner');
-    inner.innerHTML = '<img src="' + e.target.result + '" alt="avatar"/><div class="avatar-overlay">📷</div>';
+// Avatar upload
+document.getElementById('avatar-input').onchange=function(){
+  var file=this.files[0]; if(!file) return;
+  newAvatarFile=file;
+  var r=new FileReader();
+  r.onload=function(e){
+    document.getElementById('avatar-inner').innerHTML='<img src="'+e.target.result+'" alt=""/><div class="avatar-overlay">📷</div>';
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(file);
 };
 
-// Load profile
-async function loadProfile() {
+// Load
+async function loadProfile(){
   try {
-    var res  = await fetch(SERVER + '/profile/' + encodeURIComponent(myEmail));
-    var data = await res.json();
-
-    if (data.success) {
-      var p = data.profile;
-      var name = p.name || myEmail.split('@')[0];
-      document.getElementById('hero-name').textContent  = name;
-      document.getElementById('name-input').value       = p.name || '';
-      document.getElementById('bio-input').value        = p.bio  || '';
-
-      if (p.avatar_url) {
-        var inner = document.getElementById('avatar-inner');
-        inner.innerHTML = '<img src="' + p.avatar_url + '" alt="avatar"/><div class="avatar-overlay">📷</div>';
+    var res=await fetch(SERVER+'/profile/'+encodeURIComponent(myEmail));
+    var data=await res.json();
+    if (data.success){
+      var p=data.profile;
+      var name=p.name||myEmail.split('@')[0];
+      document.getElementById('hero-name').textContent=name;
+      document.getElementById('name-input').value=p.name||'';
+      document.getElementById('bio-input').value=p.bio||'';
+      if(p.phone) document.getElementById('phone-input').value=p.phone;
+      if(p.website) document.getElementById('website-input').value=p.website;
+      if(p.location) document.getElementById('location-input').value=p.location;
+      if(p.avatar_url){
+        document.getElementById('avatar-inner').innerHTML='<img src="'+p.avatar_url+'" alt=""/><div class="avatar-overlay">📷</div>';
       } else {
-        selectedColor = p.avatar_color || 'av0';
-        document.getElementById('avatar-inner').style.background = colorMap[selectedColor];
-        document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
-        var idx = parseInt(selectedColor.replace('av',''));
-        document.querySelectorAll('.color-dot').forEach(function(d, i) {
-          d.classList.toggle('selected', i === idx);
-        });
+        selectedColor=p.avatar_color||'av0';
+        document.getElementById('avatar-inner').style.background=colorMap[selectedColor];
+        document.getElementById('avatar-letter').textContent=myEmail[0].toUpperCase();
+        var idx=parseInt(selectedColor.replace('av',''));
+        document.querySelectorAll('.color-dot').forEach(function(d,i){d.classList.toggle('selected',i===idx);});
       }
     } else {
-      document.getElementById('avatar-inner').style.background = colorMap['av0'];
-      document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
-      document.getElementById('hero-name').textContent = myEmail.split('@')[0];
+      document.getElementById('avatar-inner').style.background=colorMap['av0'];
+      document.getElementById('avatar-letter').textContent=myEmail[0].toUpperCase();
+      document.getElementById('hero-name').textContent=myEmail.split('@')[0];
     }
-  } catch(e) {
-    document.getElementById('avatar-inner').style.background = colorMap['av0'];
-    document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
-    document.getElementById('hero-name').textContent = myEmail.split('@')[0];
+  } catch(e){
+    document.getElementById('avatar-inner').style.background=colorMap['av0'];
+    document.getElementById('avatar-letter').textContent=myEmail[0].toUpperCase();
+    document.getElementById('hero-name').textContent=myEmail.split('@')[0];
   }
-
-  // Stats
   try {
-    var r2 = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
-    var d2 = await r2.json();
-    document.getElementById('stat-grp').textContent = d2.success ? d2.groups.length : 0;
-  } catch(e) {}
-
-  document.getElementById('stat-msg').textContent = '✓';
-  document.getElementById('stat-since').textContent = 'May';
+    var r2=await fetch(SERVER+'/groups/'+encodeURIComponent(myEmail));
+    var d2=await r2.json();
+    document.getElementById('s-grp').textContent=d2.success?d2.groups.length:0;
+  } catch(e){}
+  document.getElementById('s-msg').textContent='✓';
 }
 
 // Save
-async function saveProfile() {
-  var btn = document.getElementById('save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  var formData = new FormData();
-  formData.append('email', myEmail);
-  formData.append('name',  document.getElementById('name-input').value.trim());
-  formData.append('bio',   document.getElementById('bio-input').value.trim());
-  formData.append('avatar_color', selectedColor);
-  if (newAvatarFile) formData.append('avatar', newAvatarFile);
-
+async function saveProfile(){
+  var btn=document.getElementById('nav-save');
+  btn.disabled=true; btn.textContent='Saving...';
+  var fd=new FormData();
+  fd.append('email',myEmail);
+  fd.append('name',document.getElementById('name-input').value.trim());
+  fd.append('bio',document.getElementById('bio-input').value.trim());
+  fd.append('avatar_color',selectedColor);
+  fd.append('phone',document.getElementById('phone-input').value.trim());
+  fd.append('website',document.getElementById('website-input').value.trim());
+  fd.append('location',document.getElementById('location-input').value.trim());
+  if(newAvatarFile) fd.append('avatar',newAvatarFile);
   try {
-    var res  = await fetch(SERVER + '/profile', { method: 'POST', body: formData });
-    var data = await res.json();
-    if (data.success) {
-      var name = document.getElementById('name-input').value.trim();
-      document.getElementById('hero-name').textContent = name || myEmail.split('@')[0];
-      if (name) localStorage.setItem('userName', name);
-      showToast();
+    var res=await fetch(SERVER+'/profile',{method:'POST',body:fd});
+    var data=await res.json();
+    if(data.success){
+      var name=document.getElementById('name-input').value.trim();
+      document.getElementById('hero-name').textContent=name||myEmail.split('@')[0];
+      if(name) localStorage.setItem('userName',name);
+      showToast('✅ Profile saved!');
     }
-  } catch(e) { alert('Save failed!'); }
-
-  btn.disabled = false;
-  btn.textContent = '💾 Save Changes';
+  } catch(e){ alert('Save failed!'); }
+  btn.disabled=false; btn.textContent='Save';
 }
 
-function showToast() {
-  var t = document.getElementById('toast');
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;
   t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 3000);
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+
+function doLogout(){
+  localStorage.clear();
+  window.location.href='index.html';
 }
 
 loadProfile();
