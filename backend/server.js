@@ -31,11 +31,9 @@ app.use(cors({
   credentials: true
 }));
 
-// ─── Serve frontend ───
 const frontendDir = path.join(__dirname, "../frontend");
 app.use(express.static(frontendDir));
 
-// ─── Cloudinary Storage (replaces diskStorage) ───
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => ({
@@ -47,7 +45,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 // ─── MySQL ───
@@ -84,32 +82,44 @@ db.query(`
 
 db.query(`
   CREATE TABLE IF NOT EXISTS group_messages (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    group_id   INT NOT NULL,
-    sender     VARCHAR(255) NOT NULL,
-    message    TEXT,
-    type       VARCHAR(20) DEFAULT 'text',
-    file_url   VARCHAR(500),
-    file_name  VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id                   INT AUTO_INCREMENT PRIMARY KEY,
+    group_id             INT NOT NULL,
+    sender               VARCHAR(255) NOT NULL,
+    message              TEXT,
+    type                 VARCHAR(20) DEFAULT 'text',
+    file_url             VARCHAR(500),
+    file_name            VARCHAR(255),
+    deleted_for_everyone TINYINT(1) DEFAULT 0,
+    created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `, err => { if (err) console.log('❌ Group messages table error:', err.message); else console.log('✅ Group messages table ready'); });
 
+// ── messages table: add deleted_for_everyone + deleted_for columns if missing ──
 db.query(`
   CREATE TABLE IF NOT EXISTS messages (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    sender     VARCHAR(255) NOT NULL,
-    receiver   VARCHAR(255) NOT NULL,
-    message    TEXT,
-    type       VARCHAR(20) DEFAULT 'text',
-    file_url   VARCHAR(500),
-    file_name  VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id                   INT AUTO_INCREMENT PRIMARY KEY,
+    sender               VARCHAR(255) NOT NULL,
+    receiver             VARCHAR(255) NOT NULL,
+    message              TEXT,
+    type                 VARCHAR(20) DEFAULT 'text',
+    file_url             VARCHAR(500),
+    file_name            VARCHAR(255),
+    deleted_for_everyone TINYINT(1) DEFAULT 0,
+    deleted_for          TEXT DEFAULT NULL,
+    created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `, err => {
   if (err) console.log("❌ Table error:", err.message);
   else     console.log("✅ Messages table ready");
 });
+
+// ── Migrate: add columns to existing tables safely ──
+const alterQueries = [
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
+  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for TEXT DEFAULT NULL`,
+  `ALTER TABLE group_messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`
+];
+alterQueries.forEach(q => db.query(q, () => {}));
 
 // ─── Firebase ───
 try {
@@ -259,7 +269,16 @@ app.get("/messages/:user1/:user2", (req, res) => {
       [user1, user2, user2, user1],
       (err, result) => {
         if (err) return res.json({ success: false });
-        res.json({ success: true, messages: result });
+        // Filter out messages deleted for this user (user1 is the requester)
+        const filtered = result.filter(m => {
+          if (m.deleted_for_everyone) return true; // show as deleted
+          if (m.deleted_for) {
+            const list = m.deleted_for.split(',');
+            if (list.includes(user1)) return false; // hide completely
+          }
+          return true;
+        });
+        res.json({ success: true, messages: filtered });
       }
     );
   } catch { res.status(401).json({ success: false }); }
@@ -268,17 +287,13 @@ app.get("/messages/:user1/:user2", (req, res) => {
 // ─── FILE UPLOAD ───
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) return res.json({ success: false, message: "No file" });
-
-  // Cloudinary returns full URL in req.file.path
   const fileUrl  = req.file.path;
   const fileName = req.file.originalname;
   const mimeType = req.file.mimetype;
-
   let type = "file";
   if (mimeType.startsWith("image/")) type = "image";
   else if (mimeType.startsWith("video/")) type = "video";
   else if (mimeType.startsWith("audio/")) type = "audio";
-
   res.json({ success: true, fileUrl, fileName, type });
 });
 
@@ -290,6 +305,80 @@ app.get("/home", (req, res) => {
     const user = jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
     res.json({ message: `✅ Secure data loaded! User ID: ${user.id} | Email: ${user.email}` });
   } catch { res.status(401).json({ message: "Invalid or expired token" }); }
+});
+
+// ═══════════════════════════════════════════════
+//  DELETE MESSAGES
+// ═══════════════════════════════════════════════
+
+// ── DELETE FOR ME (private message) ──
+app.post("/messages/:id/delete-for-me", (req, res) => {
+  const token = req.headers["authorization"];
+  if (!token) return res.status(401).json({ success: false });
+  try {
+    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
+  } catch { return res.status(401).json({ success: false }); }
+
+  const { id } = req.params;
+  const { email } = req.body;
+  if (!email) return res.json({ success: false, message: 'Email required' });
+
+  // Append this user to deleted_for list
+  db.query('SELECT deleted_for FROM messages WHERE id = ?', [id], (err, result) => {
+    if (err || !result.length) return res.json({ success: false, message: 'Message not found' });
+    const existing = result[0].deleted_for || '';
+    const list = existing ? existing.split(',') : [];
+    if (!list.includes(email)) list.push(email);
+    db.query('UPDATE messages SET deleted_for = ? WHERE id = ?', [list.join(','), id], (err2) => {
+      if (err2) return res.json({ success: false, message: err2.message });
+      res.json({ success: true });
+    });
+  });
+});
+
+// ── DELETE FOR EVERYONE (private message) ──
+app.post("/messages/:id/delete-for-everyone", (req, res) => {
+  const token = req.headers["authorization"];
+  if (!token) return res.status(401).json({ success: false });
+  try {
+    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
+  } catch { return res.status(401).json({ success: false }); }
+
+  const { id } = req.params;
+  const { email } = req.body;
+
+  // Only the sender can delete for everyone
+  db.query('SELECT sender FROM messages WHERE id = ?', [id], (err, result) => {
+    if (err || !result.length) return res.json({ success: false, message: 'Message not found' });
+    if (result[0].sender !== email) return res.json({ success: false, message: 'Only sender can delete for everyone' });
+
+    db.query('UPDATE messages SET deleted_for_everyone = 1 WHERE id = ?', [id], (err2) => {
+      if (err2) return res.json({ success: false, message: err2.message });
+      res.json({ success: true });
+    });
+  });
+});
+
+// ── DELETE FOR EVERYONE (group message) ──
+app.post("/group-messages/:id/delete", (req, res) => {
+  const token = req.headers["authorization"];
+  if (!token) return res.status(401).json({ success: false });
+  try {
+    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
+  } catch { return res.status(401).json({ success: false }); }
+
+  const { id } = req.params;
+  const { email } = req.body;
+
+  db.query('SELECT sender FROM group_messages WHERE id = ?', [id], (err, result) => {
+    if (err || !result.length) return res.json({ success: false, message: 'Message not found' });
+    if (result[0].sender !== email) return res.json({ success: false, message: 'Only sender can delete for everyone' });
+
+    db.query('UPDATE group_messages SET deleted_for_everyone = 1 WHERE id = ?', [id], (err2) => {
+      if (err2) return res.json({ success: false, message: err2.message });
+      res.json({ success: true });
+    });
+  });
 });
 
 // ─── CREATE GROUP ───
@@ -392,13 +481,8 @@ app.get('/profile/:email', (req, res) => {
 app.post('/profile', upload.single('avatar'), async (req, res) => {
   const { email, name, bio, avatar_color } = req.body;
   if (!email) return res.json({ success: false, message: 'Email required' });
-
-  // Cloudinary returns full URL in req.file.path
   let avatar_url = null;
-  if (req.file) {
-    avatar_url = req.file.path;
-  }
-
+  if (req.file) { avatar_url = req.file.path; }
   db.query(
     'INSERT INTO user_profiles (email, name, bio, avatar_color, avatar_url) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), bio=VALUES(bio), avatar_color=VALUES(avatar_color)' + (avatar_url ? ', avatar_url=VALUES(avatar_url)' : ''),
     [email, name || '', bio || '', avatar_color || 'av0', avatar_url || ''],
@@ -417,7 +501,9 @@ app.get('/profiles', (req, res) => {
   });
 });
 
-// ─── SOCKET.IO ───
+// ═══════════════════════════════════════════════
+//  SOCKET.IO
+// ═══════════════════════════════════════════════
 const onlineUsers = new Map();
 
 io.on("connection", (socket) => {
@@ -448,26 +534,52 @@ io.on("connection", (socket) => {
   socket.on("private-message", ({ to, from, message, type, fileUrl, fileName }) => {
     db.query(
       "INSERT INTO messages (sender, receiver, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
-      [from, to, message || "", type || "text", fileUrl || null, fileName || null]
+      [from, to, message || "", type || "text", fileUrl || null, fileName || null],
+      (err, result) => {
+        const msgId = result ? result.insertId : null;
+        const payload = { id: msgId, from, message, type, fileUrl, fileName, time: new Date().toISOString() };
+
+        // Echo back to sender (so they get the DB id)
+        socket.emit('private-message-echo', payload);
+
+        // Send to receiver
+        const receiverSocketId = onlineUsers.get(to);
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("private-message", payload);
+        }
+      }
     );
-    const receiverSocketId = onlineUsers.get(to);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("private-message", {
-        from, message, type, fileUrl, fileName,
-        time: new Date().toISOString()
-      });
-    }
   });
 
   socket.on("group-message", ({ groupId, from, message, type, fileUrl, fileName }) => {
     db.query(
       "INSERT INTO group_messages (group_id, sender, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
-      [groupId, from, message || "", type || "text", fileUrl || null, fileName || null]
+      [groupId, from, message || "", type || "text", fileUrl || null, fileName || null],
+      (err, result) => {
+        const msgId = result ? result.insertId : null;
+        const payload = { id: msgId, groupId, from, message, type, fileUrl, fileName, time: new Date().toISOString() };
+
+        // Echo to sender
+        socket.emit('group-message-echo', payload);
+
+        // Broadcast to group (excluding sender to avoid duplicate)
+        socket.broadcast.emit("group-message", payload);
+      }
     );
-    io.emit("group-message", {
-      groupId, from, message, type, fileUrl, fileName,
-      time: new Date().toISOString()
-    });
+  });
+
+  // ── Delete message (real-time broadcast) ──
+  socket.on("delete-message", ({ msgId, deletedFor, to, groupId }) => {
+    if (groupId) {
+      // Broadcast to all (group)
+      io.emit("message-deleted", { msgId, deletedFor });
+    } else if (to) {
+      // Send to receiver only
+      const receiverSocketId = onlineUsers.get(to);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("message-deleted", { msgId, deletedFor });
+      }
+    }
   });
 
   socket.on("disconnect", () => {

@@ -82,7 +82,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 #messages-area::-webkit-scrollbar{width:3px;}
 #messages-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
 
-.msg-group{display:flex;flex-direction:column;max-width:65%;gap:2px;}
+.msg-group{display:flex;flex-direction:column;max-width:65%;gap:2px;position:relative;}
 .msg-group.me{align-self:flex-end;align-items:flex-end;}
 .msg-group.them{align-self:flex-start;align-items:flex-start;}
 .bubble{padding:9px 13px;border-radius:16px;font-size:13.5px;line-height:1.5;word-break:break-word;}
@@ -100,6 +100,30 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 .audio-bubble{width:200px;}
 .file-bubble{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--text);font-size:13px;min-width:150px;}
 .file-icon{font-size:20px;}
+
+/* ── Deleted message style ── */
+.deleted-bubble{padding:9px 13px;border-radius:16px;font-size:12px;font-style:italic;color:var(--muted);border:1px dashed var(--border);background:transparent;}
+
+/* ── Context Menu ── */
+#ctx-menu{
+  position:fixed;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:4px;
+  z-index:9999;
+  display:none;
+  min-width:160px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+}
+.ctx-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;border-radius:7px;
+  font-size:13px;cursor:pointer;color:var(--text);
+}
+.ctx-item:hover{background:var(--card);}
+.ctx-item.danger{color:var(--danger);}
+.ctx-item.danger:hover{background:rgba(239,68,68,0.1);}
 
 #input-row{padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:flex-end;gap:8px;}
 .icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
@@ -148,6 +172,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
   <div style="font-size:44px;">🔐</div>
   <h2>Login பண்ணணும்!</h2>
   <a href="index.html">← Login Page</a>
+</div>
+
+<!-- ── Context Menu ── -->
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-copy" onclick="ctxCopy()">📋 Copy</div>
+  <div class="ctx-item danger" id="ctx-delete-me" onclick="ctxDeleteForMe()">🗑️ Delete for Me</div>
+  <div class="ctx-item danger" id="ctx-delete-all" onclick="ctxDeleteForEveryone()" style="display:none;">🗑️ Delete for Everyone</div>
 </div>
 
 <div id="topbar">
@@ -259,22 +290,17 @@ const myEmail = localStorage.getItem('email');
 
 if (!token || !myEmail) document.getElementById('login-wall').style.display = 'flex';
 
-// ─── Topbar: name + avatar from localStorage ───
 var storedName   = localStorage.getItem('userName');
 var storedAvatar = localStorage.getItem('userAvatar');
-var storedColor  = localStorage.getItem('userAvatarColor') || 'av0';
-
 var topbarAv = document.getElementById('topbar-avatar');
 var topbarNm = document.getElementById('topbar-name');
 topbarNm.textContent = storedName || myEmail || '';
-
 if (storedAvatar) {
   topbarAv.innerHTML = '<img src="' + storedAvatar + '" alt=""/>';
 } else {
   topbarAv.textContent = myEmail ? myEmail[0].toUpperCase() : '?';
 }
 
-// ─── Also load fresh from API ───
 (async function loadMyProfile() {
   try {
     var res  = await fetch(SERVER + '/profile/' + encodeURIComponent(myEmail));
@@ -301,13 +327,20 @@ socket.emit('join', myEmail);
 let onlineList   = [];
 let allUsers     = [];
 let myGroups     = [];
-let profilesMap  = {}; // email → { name, avatar_url, avatar_color }
+let profilesMap  = {};
 let currentChat  = null;
 let currentGroup = null;
 let activeTab    = 'all';
 let lastSeenMap  = {};
 let unreadMap    = {};
 let typingTimer  = null;
+
+// ── Context menu state ──
+let ctxMsgId   = null;  // DB id of right-clicked message
+let ctxMsgEl   = null;  // DOM element
+let ctxMsgText = '';    // plain text (for copy)
+let ctxIsMine  = false; // was I the sender?
+let ctxIsGroup = false; // group message?
 
 const colorMap = {
   av0:'linear-gradient(135deg,#3b82f6,#8b5cf6)',
@@ -327,13 +360,11 @@ function avClass(email) {
   return c[h];
 }
 
-// Build avatar HTML for a user
 function buildAvatar(email, size, radius) {
   size   = size   || 42;
   radius = radius || 13;
   var p  = profilesMap[email];
   var style = 'width:' + size + 'px;height:' + size + 'px;border-radius:' + radius + 'px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:' + Math.round(size * 0.38) + 'px;color:#fff;overflow:hidden;flex-shrink:0;';
-
   if (p && p.avatar_url) {
     return '<div style="' + style + '"><img src="' + p.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:' + radius + 'px;" alt=""/></div>';
   }
@@ -366,7 +397,7 @@ function scrollBottom() {
   a.scrollTop = a.scrollHeight;
 }
 
-// Socket events
+// ─── Socket events ───
 socket.on('online-users', function(list) {
   onlineList = list;
   renderUsers();
@@ -402,7 +433,7 @@ socket.on('msg-seen', function(data) {
 
 socket.on('private-message', function(data) {
   if (currentChat === data.from) {
-    appendBubble(data.message, 'them', data.time, data.type, data.fileUrl, data.fileName);
+    appendBubble(data.id, data.message, 'them', data.time, data.type, data.fileUrl, data.fileName);
   } else {
     unreadMap[data.from] = (unreadMap[data.from] || 0) + 1;
     renderUsers();
@@ -411,19 +442,30 @@ socket.on('private-message', function(data) {
 
 socket.on('group-message', function(data) {
   if (currentGroup && currentGroup.id === data.groupId) {
-    appendGroupBubble(data.from, data.message, data.from === myEmail ? 'me' : 'them', data.time, data.type, data.fileUrl, data.fileName);
+    appendGroupBubble(data.id, data.from, data.message, data.from === myEmail ? 'me' : 'them', data.time, data.type, data.fileUrl, data.fileName);
   }
 });
 
-// Load all profiles first, then users
+// ── DELETE FOR EVERYONE (received) ──
+socket.on('message-deleted', function(data) {
+  // data: { msgId, deletedFor }  ('everyone' or myEmail)
+  var el = document.querySelector('[data-msg-id="' + data.msgId + '"]');
+  if (el) {
+    if (data.deletedFor === 'everyone') {
+      markDeletedUI(el, true);
+    } else if (data.deletedFor === myEmail) {
+      el.remove();
+    }
+  }
+});
+
+// ─── Load ───
 async function loadProfiles() {
   try {
     var res  = await fetch(SERVER + '/profiles');
     var data = await res.json();
     if (data.success) {
-      data.profiles.forEach(function(p) {
-        profilesMap[p.email] = p;
-      });
+      data.profiles.forEach(function(p) { profilesMap[p.email] = p; });
     }
   } catch(e) {}
 }
@@ -436,7 +478,7 @@ async function loadUsers() {
       allUsers = data.users.filter(function(u) { return u !== myEmail; });
       renderUsers();
     }
-  } catch(e) { console.log('Load users error:', e); }
+  } catch(e) {}
 }
 
 async function loadGroups() {
@@ -447,31 +489,26 @@ async function loadGroups() {
       myGroups = data.groups;
       renderGroups();
     }
-  } catch(e) { console.log('Load groups error:', e); }
+  } catch(e) {}
 }
 
 function renderUsers() {
   const list = document.getElementById('users-list');
   const q    = document.getElementById('search-input').value.toLowerCase();
-
   let users = allUsers.filter(function(u) { return u.toLowerCase().includes(q) || getDisplayName(u).toLowerCase().includes(q); });
   if (activeTab === 'online') users = users.filter(function(u) { return onlineList.includes(u); });
-
   const onlineCnt = allUsers.filter(function(u) { return onlineList.includes(u); }).length;
   document.getElementById('online-count').textContent = allUsers.length + ' users · ' + onlineCnt + ' online';
-
   list.innerHTML = '';
   if (!users.length) {
     list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:16px;">No users found</div>';
     return;
   }
-
   users.forEach(function(email) {
     const isOnline   = onlineList.includes(email);
     const unread     = unreadMap[email] || 0;
     const sub        = isOnline ? 'Online now' : formatLastSeen(lastSeenMap[email]);
     const displayName = getDisplayName(email);
-
     const card = document.createElement('div');
     card.className = 'user-card' + (currentChat === email ? ' active' : '');
     card.innerHTML =
@@ -533,7 +570,6 @@ async function openChat(email) {
   unreadMap[email] = 0;
   renderUsers();
   renderGroups();
-
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('chat-view').style.display   = 'flex';
   updateChatHeader();
@@ -556,7 +592,7 @@ async function openChat(email) {
         area.appendChild(lbl);
         lastDay = day;
       }
-      appendBubble(m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name);
+      appendBubble(m.id, m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name, m.deleted_for_everyone, m.deleted_for);
     });
   } else {
     area.innerHTML = '<div class="no-msgs"><span style="font-size:28px">👋</span><span>Say hi to ' + escHtml(getDisplayName(email)) + '!</span></div>';
@@ -570,7 +606,6 @@ function updateChatHeader() {
   var p        = profilesMap[email];
   var ctAv     = document.getElementById('ct-avatar');
   var name     = getDisplayName(email);
-
   if (p && p.avatar_url) {
     ctAv.innerHTML = '<img src="' + p.avatar_url + '" alt=""/>';
     ctAv.className = '';
@@ -581,7 +616,6 @@ function updateChatHeader() {
     ctAv.className   = '';
     ctAv.style.background = color;
   }
-
   document.getElementById('ct-name').textContent = name;
   var st = document.getElementById('ct-status');
   st.textContent = isOnline ? '🟢 Online now' : formatLastSeen(lastSeenMap[email]);
@@ -593,10 +627,8 @@ async function openGroupChat(group) {
   currentChat  = null;
   renderUsers();
   renderGroups();
-
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('chat-view').style.display   = 'flex';
-
   var ctAv = document.getElementById('ct-avatar');
   ctAv.textContent     = '👥';
   ctAv.className       = '';
@@ -604,7 +636,6 @@ async function openGroupChat(group) {
   document.getElementById('ct-name').textContent   = group.name;
   document.getElementById('ct-status').textContent = 'Group Chat';
   document.getElementById('ct-status').className   = '';
-
   socket.emit('join-group', group.id);
   showGroupActions(true);
 
@@ -612,10 +643,9 @@ async function openGroupChat(group) {
   const data = await res.json();
   var area   = document.getElementById('messages-area');
   area.innerHTML = '';
-
   if (data.success && data.messages.length > 0) {
     data.messages.forEach(function(m) {
-      appendGroupBubble(m.sender, m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name);
+      appendGroupBubble(m.id, m.sender, m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name, m.deleted_for_everyone);
     });
   } else {
     area.innerHTML = '<div class="no-msgs"><span style="font-size:28px">👥</span><span>Start the group conversation!</span></div>';
@@ -623,7 +653,8 @@ async function openGroupChat(group) {
   scrollBottom();
 }
 
-function appendBubble(text, who, time, type, fileUrl, fileName) {
+// ── Append helpers ──
+function appendBubble(id, text, who, time, type, fileUrl, fileName, deletedForEveryone, deletedFor) {
   type = type || 'text';
   var area  = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
@@ -631,15 +662,42 @@ function appendBubble(text, who, time, type, fileUrl, fileName) {
 
   var group   = document.createElement('div');
   group.className = 'msg-group ' + who;
-  var t       = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
-  var tick    = who === 'me' ? '<span class="tick">✓</span>' : '';
-  var content = buildContent(text, type, fileUrl, fileName);
+  if (id) group.dataset.msgId = id;
+  group.dataset.msgType  = 'dm';
+  group.dataset.isMine   = (who === 'me') ? '1' : '0';
+  group.dataset.msgText  = text || '';
+
+  var t    = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var tick = who === 'me' ? '<span class="tick">✓</span>' : '';
+
+  // Already deleted?
+  var isDeletedEveryone = deletedForEveryone == 1 || deletedForEveryone === true;
+  var isDeletedForMe    = deletedFor && deletedFor.split(',').includes(myEmail);
+
+  if (isDeletedForMe && !isDeletedEveryone) {
+    // Don't show at all
+    return;
+  }
+
+  var content = isDeletedEveryone
+    ? '<div class="deleted-bubble">🚫 This message was deleted</div>'
+    : buildContent(text, type, fileUrl, fileName);
+
   group.innerHTML = content + '<div class="msg-time">' + t + tick + '</div>';
+
+  // Right-click → context menu (only on non-deleted bubbles)
+  if (!isDeletedEveryone) {
+    group.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showCtxMenu(e, id, group, text, who === 'me', false);
+    });
+  }
+
   area.appendChild(group);
   scrollBottom();
 }
 
-function appendGroupBubble(sender, text, who, time, type, fileUrl, fileName) {
+function appendGroupBubble(id, sender, text, who, time, type, fileUrl, fileName, deletedForEveryone) {
   type = type || 'text';
   var area  = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
@@ -647,12 +705,30 @@ function appendGroupBubble(sender, text, who, time, type, fileUrl, fileName) {
 
   var group = document.createElement('div');
   group.className = 'msg-group ' + who;
+  if (id) group.dataset.msgId = id;
+  group.dataset.msgType = 'group';
+  group.dataset.isMine  = (who === 'me') ? '1' : '0';
+  group.dataset.msgText = text || '';
+
   var t     = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
   var senderLabel = who === 'them'
     ? '<div class="sender-name">' + escHtml(getDisplayName(sender)) + '</div>'
     : '';
-  var content = buildContent(text, type, fileUrl, fileName);
+
+  var isDeleted = deletedForEveryone == 1 || deletedForEveryone === true;
+  var content = isDeleted
+    ? '<div class="deleted-bubble">🚫 This message was deleted</div>'
+    : buildContent(text, type, fileUrl, fileName);
+
   group.innerHTML = senderLabel + content + '<div class="msg-time">' + t + '</div>';
+
+  if (!isDeleted) {
+    group.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showCtxMenu(e, id, group, text, who === 'me', true);
+    });
+  }
+
   area.appendChild(group);
   scrollBottom();
 }
@@ -674,22 +750,123 @@ function previewImg(src) {
   document.getElementById('img-preview-overlay').classList.add('show');
 }
 
+// ─────────────────────────────────────────
+//  CONTEXT MENU LOGIC
+// ─────────────────────────────────────────
+function showCtxMenu(e, msgId, el, text, isMine, isGroup) {
+  ctxMsgId   = msgId;
+  ctxMsgEl   = el;
+  ctxMsgText = text;
+  ctxIsMine  = isMine;
+  ctxIsGroup = isGroup;
+
+  var menu = document.getElementById('ctx-menu');
+
+  // "Delete for Everyone" — only sender can use
+  document.getElementById('ctx-delete-all').style.display = isMine ? 'flex' : 'none';
+
+  // Position menu
+  menu.style.display = 'block';
+  var mx = e.clientX, my = e.clientY;
+  if (mx + 170 > window.innerWidth)  mx = window.innerWidth - 175;
+  if (my + 130 > window.innerHeight) my = window.innerHeight - 135;
+  menu.style.left = mx + 'px';
+  menu.style.top  = my + 'px';
+}
+
+// Hide menu on outside click
+document.addEventListener('click', function() {
+  document.getElementById('ctx-menu').style.display = 'none';
+});
+
+function ctxCopy() {
+  if (ctxMsgText) navigator.clipboard.writeText(ctxMsgText).catch(function(){});
+}
+
+async function ctxDeleteForMe() {
+  if (!ctxMsgId || !ctxMsgEl) return;
+  try {
+    var res  = await fetch(SERVER + '/messages/' + ctxMsgId + '/delete-for-me', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', authorization: token },
+      body: JSON.stringify({ email: myEmail })
+    });
+    var data = await res.json();
+    if (data.success) {
+      ctxMsgEl.remove();
+    } else {
+      alert('Could not delete message');
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function ctxDeleteForEveryone() {
+  if (!ctxMsgId || !ctxMsgEl) return;
+  var endpoint = ctxIsGroup
+    ? SERVER + '/group-messages/' + ctxMsgId + '/delete'
+    : SERVER + '/messages/' + ctxMsgId + '/delete-for-everyone';
+
+  try {
+    var res  = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', authorization: token },
+      body: JSON.stringify({ email: myEmail })
+    });
+    var data = await res.json();
+    if (data.success) {
+      markDeletedUI(ctxMsgEl, true);
+      // Notify others via socket
+      socket.emit('delete-message', {
+        msgId: ctxMsgId,
+        deletedFor: 'everyone',
+        to: currentChat || null,
+        groupId: currentGroup ? currentGroup.id : null
+      });
+    } else {
+      alert('Could not delete: ' + (data.message || ''));
+    }
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function markDeletedUI(el, everyone) {
+  // Replace bubble content, keep time row, remove context menu listener
+  var timeEl = el.querySelector('.msg-time');
+  var timeHtml = timeEl ? timeEl.outerHTML : '';
+  var senderEl = el.querySelector('.sender-name');
+  var senderHtml = senderEl ? senderEl.outerHTML : '';
+  el.innerHTML = senderHtml + '<div class="deleted-bubble">🚫 This message was deleted</div>' + timeHtml;
+  el.replaceWith(el.cloneNode(true)); // remove all event listeners
+}
+
+// ─────────────────────────────────────────
+//  SEND MESSAGE
+// ─────────────────────────────────────────
 function sendMsg() {
   var input = document.getElementById('msg-input');
   var text  = input.value.trim();
   if (!text) return;
   var now = new Date().toISOString();
   if (currentGroup) {
-    appendGroupBubble(myEmail, text, 'me', now, 'text', null, null);
     socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: text, type: 'text' });
   } else if (currentChat) {
-    appendBubble(text, 'me', now, 'text', null, null);
     socket.emit('private-message', { to: currentChat, from: myEmail, message: text, type: 'text' });
     socket.emit('stop-typing', { to: currentChat, from: myEmail });
   }
   input.value = '';
   input.style.height = 'auto';
 }
+
+// Optimistic local append after server saves (via socket echo)
+socket.on('private-message-echo', function(data) {
+  if (data.from === myEmail) {
+    appendBubble(data.id, data.message, 'me', data.time, data.type, data.fileUrl, data.fileName);
+  }
+});
+socket.on('group-message-echo', function(data) {
+  if (data.from === myEmail && currentGroup && currentGroup.id === data.groupId) {
+    appendGroupBubble(data.id, data.from, data.message, 'me', data.time, data.type, data.fileUrl, data.fileName);
+  }
+});
 
 document.getElementById('msg-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
@@ -715,12 +892,9 @@ document.getElementById('file-input').addEventListener('change', async function(
     var res  = await fetch(SERVER + '/upload', { method: 'POST', body: formData });
     var data = await res.json();
     if (data.success) {
-      var now = new Date().toISOString();
       if (currentGroup) {
-        appendGroupBubble(myEmail, '', 'me', now, data.type, data.fileUrl, data.fileName);
         socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
       } else {
-        appendBubble('', 'me', now, data.type, data.fileUrl, data.fileName);
         socket.emit('private-message', { to: currentChat, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
       }
     } else { alert('Upload failed!'); }
@@ -728,6 +902,7 @@ document.getElementById('file-input').addEventListener('change', async function(
   this.value = '';
 });
 
+// ─── Group functions ───
 function openCreateGroup() {
   var list = document.getElementById('members-checklist');
   list.innerHTML = '';
@@ -850,7 +1025,6 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-// Load order matters: profiles first, then users
 (async function init() {
   await loadProfiles();
   await loadUsers();
