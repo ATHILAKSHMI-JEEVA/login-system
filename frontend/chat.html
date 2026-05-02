@@ -97,7 +97,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 
 .img-bubble{max-width:220px;border-radius:12px;cursor:pointer;display:block;}
 .video-bubble{max-width:240px;border-radius:12px;outline:none;}
-.audio-bubble{width:200px;}
+.audio-bubble{width:220px;height:36px;border-radius:20px;accent-color:var(--accent);}
 .file-bubble{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--text);font-size:13px;min-width:150px;}
 .file-icon{font-size:20px;}
 
@@ -125,7 +125,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 .ctx-item.danger{color:var(--danger);}
 .ctx-item.danger:hover{background:rgba(239,68,68,0.1);}
 
-#input-row{padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:flex-end;gap:8px;}
+#input-row{padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:flex-end;gap:8px;position:relative;}
 .icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
 .icon-btn:hover{background:var(--border);}
 #msg-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:9px 14px;color:var(--text);font-size:13.5px;font-family:var(--font);outline:none;resize:none;max-height:100px;line-height:1.5;}
@@ -135,6 +135,49 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 #send-btn:hover{background:#2563eb;}
 #send-btn svg{width:17px;height:17px;fill:#fff;}
 #file-input{display:none;}
+#img-file-input{display:none;}
+#video-file-input{display:none;}
+#doc-file-input{display:none;}
+
+/* ── Attachment menu ── */
+#attach-menu{
+  position:absolute;bottom:62px;left:14px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:6px;display:none;
+  flex-direction:column;gap:2px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:50;min-width:170px;
+}
+#attach-menu.show{display:flex;}
+.attach-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);}
+.attach-item:hover{background:var(--card);}
+.attach-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+
+/* ── Voice recording UI ── */
+#voice-btn{
+  width:40px;height:40px;border-radius:11px;
+  background:var(--card);border:1px solid var(--border);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;user-select:none;transition:all 0.15s;
+}
+#voice-btn:hover{background:var(--border);}
+#voice-btn.recording{
+  background:var(--danger);border-color:var(--danger);
+  animation:pulse-rec 1s infinite;
+}
+@keyframes pulse-rec{
+  0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);}
+  50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}
+}
+#rec-bar{
+  display:none;align-items:center;gap:8px;
+  background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);
+  border-radius:12px;padding:6px 12px;flex:1;
+}
+#rec-bar.show{display:flex;}
+#rec-timer{font-size:13px;font-weight:600;color:var(--danger);min-width:38px;}
+#rec-wave{flex:1;height:28px;}
+#rec-cancel{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:2px 4px;}
+#rec-cancel:hover{color:var(--danger);}
 
 #img-preview-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;}
 #img-preview-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;}
@@ -242,9 +285,35 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
       </div>
       <div id="messages-area"></div>
       <div id="input-row">
-        <input type="file" id="file-input" accept="image/*,video/*,.pdf,.doc,.docx,.txt"/>
-        <button class="icon-btn" onclick="document.getElementById('file-input').click()">📎</button>
+        <input type="file" id="img-file-input"   accept="image/*"/>
+        <input type="file" id="video-file-input" accept="video/*"/>
+        <input type="file" id="doc-file-input"   accept=".pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar"/>
+        <input type="file" id="file-input"        accept="*/*"/>
+        <div id="attach-menu">
+          <div class="attach-item" onclick="triggerFile('img-file-input')">
+            <div class="attach-icon" style="background:rgba(59,130,246,0.15);">🖼️</div><span>Image</span>
+          </div>
+          <div class="attach-item" onclick="triggerFile('video-file-input')">
+            <div class="attach-icon" style="background:rgba(239,68,68,0.15);">🎬</div><span>Video</span>
+          </div>
+          <div class="attach-item" onclick="triggerFile('doc-file-input')">
+            <div class="attach-icon" style="background:rgba(245,158,11,0.15);">📄</div><span>Document</span>
+          </div>
+          <div class="attach-item" onclick="triggerFile('file-input')">
+            <div class="attach-icon" style="background:rgba(6,214,160,0.15);">📁</div><span>Any File</span>
+          </div>
+        </div>
+        <button class="icon-btn" id="attach-btn" onclick="toggleAttachMenu(event)" title="Attach">📎</button>
+        <div id="rec-bar">
+          <span style="font-size:16px;">🔴</span>
+          <span id="rec-timer">0:00</span>
+          <canvas id="rec-wave" width="180" height="28"></canvas>
+          <button id="rec-cancel" onclick="cancelRecording()" title="Cancel">✕</button>
+        </div>
         <textarea id="msg-input" rows="1" placeholder="Type a message..."></textarea>
+        <button id="voice-btn" title="Hold to record"
+          onmousedown="startRecording()" onmouseup="stopRecording()" onmouseleave="stopRecording()"
+          ontouchstart="startRecording(event)" ontouchend="stopRecording()">🎤</button>
         <button id="send-btn" onclick="sendMsg()">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </button>
@@ -883,8 +952,8 @@ document.getElementById('msg-input').addEventListener('input', function() {
   }, 1500);
 });
 
-document.getElementById('file-input').addEventListener('change', async function() {
-  var file = this.files[0];
+// ── Generic file upload helper ──
+async function uploadAndSend(file) {
   if (!file || (!currentChat && !currentGroup)) return;
   var formData = new FormData();
   formData.append('file', file);
@@ -899,8 +968,163 @@ document.getElementById('file-input').addEventListener('change', async function(
       }
     } else { alert('Upload failed!'); }
   } catch(e) { alert('Upload failed!'); }
-  this.value = '';
+}
+
+// Hook all file inputs to the same handler
+['file-input','img-file-input','video-file-input','doc-file-input'].forEach(function(id) {
+  document.getElementById(id).addEventListener('change', async function() {
+    await uploadAndSend(this.files[0]);
+    this.value = '';
+  });
 });
+
+// ── Attachment menu ──
+function toggleAttachMenu(e) {
+  e.stopPropagation();
+  document.getElementById('attach-menu').classList.toggle('show');
+}
+function triggerFile(inputId) {
+  document.getElementById('attach-menu').classList.remove('show');
+  document.getElementById(inputId).click();
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#attach-btn') && !e.target.closest('#attach-menu')) {
+    document.getElementById('attach-menu').classList.remove('show');
+  }
+});
+
+// ═══════════════════════════════════════════════
+//  VOICE RECORDING  (Press & Hold 🎤)
+// ═══════════════════════════════════════════════
+var mediaRecorder   = null;
+var audioChunks     = [];
+var recTimerInterval = null;
+var recSeconds      = 0;
+var audioCtx        = null;
+var analyser        = null;
+var animFrameId     = null;
+var recStream       = null;
+
+function startRecording(e) {
+  if (e) e.preventDefault();
+  if (!currentChat && !currentGroup) return;
+  if (mediaRecorder && mediaRecorder.state === 'recording') return;
+
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+    recStream   = stream;
+    audioChunks = [];
+    recSeconds  = 0;
+
+    // UI switch
+    document.getElementById('msg-input').style.display = 'none';
+    document.getElementById('rec-bar').classList.add('show');
+    document.getElementById('voice-btn').classList.add('recording');
+
+    // Timer
+    updateRecTimer();
+    recTimerInterval = setInterval(function() {
+      recSeconds++;
+      updateRecTimer();
+    }, 1000);
+
+    // Waveform visualiser
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    drawWave();
+
+    // MediaRecorder
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = function(ev) {
+      if (ev.data.size > 0) audioChunks.push(ev.data);
+    };
+    mediaRecorder.onstop = function() {
+      var blob = new Blob(audioChunks, { type: 'audio/webm' });
+      if (recSeconds >= 1) {
+        sendVoiceMessage(blob);
+      }
+      cleanupRecording();
+    };
+    mediaRecorder.start();
+  }).catch(function(err) {
+    alert('Microphone access denied: ' + err.message);
+  });
+}
+
+function stopRecording() {
+  if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
+  mediaRecorder.stop();
+}
+
+function cancelRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.ondataavailable = null;
+    mediaRecorder.onstop = null;
+    mediaRecorder.stop();
+  }
+  cleanupRecording();
+}
+
+function cleanupRecording() {
+  clearInterval(recTimerInterval);
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  if (recStream) { recStream.getTracks().forEach(function(t) { t.stop(); }); recStream = null; }
+  document.getElementById('msg-input').style.display = '';
+  document.getElementById('rec-bar').classList.remove('show');
+  document.getElementById('voice-btn').classList.remove('recording');
+  document.getElementById('rec-timer').textContent = '0:00';
+  // Clear canvas
+  var canvas = document.getElementById('rec-wave');
+  canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function updateRecTimer() {
+  var m = Math.floor(recSeconds / 60);
+  var s = recSeconds % 60;
+  document.getElementById('rec-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function drawWave() {
+  var canvas  = document.getElementById('rec-wave');
+  var ctx     = canvas.getContext('2d');
+  var bufLen  = analyser.frequencyBinCount;
+  var dataArr = new Uint8Array(bufLen);
+
+  function frame() {
+    animFrameId = requestAnimationFrame(frame);
+    analyser.getByteFrequencyData(dataArr);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var barW = (canvas.width / bufLen) * 2;
+    var x = 0;
+    for (var i = 0; i < bufLen; i++) {
+      var barH = (dataArr[i] / 255) * canvas.height;
+      ctx.fillStyle = 'rgba(239,68,68,' + (0.4 + (dataArr[i] / 255) * 0.6) + ')';
+      ctx.fillRect(x, canvas.height - barH, barW - 1, barH);
+      x += barW;
+    }
+  }
+  frame();
+}
+
+async function sendVoiceMessage(blob) {
+  var file     = new File([blob], 'voice-' + Date.now() + '.webm', { type: 'audio/webm' });
+  var formData = new FormData();
+  formData.append('file', file);
+  try {
+    var res  = await fetch(SERVER + '/upload', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.success) {
+      var payload = { message: '', type: 'audio', fileUrl: data.fileUrl, fileName: data.fileName };
+      if (currentGroup) {
+        socket.emit('group-message', Object.assign({ groupId: currentGroup.id, from: myEmail }, payload));
+      } else {
+        socket.emit('private-message', Object.assign({ to: currentChat, from: myEmail }, payload));
+      }
+    } else { alert('Voice upload failed!'); }
+  } catch(e) { alert('Voice upload error: ' + e.message); }
+}
 
 // ─── Group functions ───
 function openCreateGroup() {
