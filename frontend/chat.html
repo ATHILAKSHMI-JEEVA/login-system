@@ -311,25 +311,85 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   display:none;
   background:var(--surface);
   border-bottom:1px solid var(--border);
-  padding:14px 16px;flex-shrink:0;
+  padding:16px 20px;flex-shrink:0;
   animation:slideDown 0.2s ease;
 }
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-.gi-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;}
-.gi-members{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
-.gi-chip{
-  display:flex;align-items:center;gap:6px;
-  background:var(--card);border:1px solid var(--border2);
-  padding:5px 12px 5px 6px;border-radius:20px;
-  font-size:12px;color:var(--text3);
+
+/* Group photo section */
+.gi-photo-row{
+  display:flex;align-items:center;gap:16px;
+  padding-bottom:14px;border-bottom:1px solid var(--border);
+  margin-bottom:14px;
 }
-.gi-chip-av{
-  width:24px;height:24px;border-radius:50%;
+.gi-photo-wrap{
+  position:relative;cursor:pointer;flex-shrink:0;
+}
+.gi-photo{
+  width:60px;height:60px;border-radius:50%;
+  background:linear-gradient(135deg,#25d366,#128c7e);
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;color:#fff;
-  background:linear-gradient(135deg,var(--accent),#34b7f1);
+  font-size:26px;overflow:hidden;
+  border:2px solid var(--border2);
+  transition:opacity 0.2s;
 }
-.gi-actions{display:flex;gap:8px;}
+.gi-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.gi-photo-wrap:hover .gi-photo{opacity:0.75;}
+.gi-photo-overlay{
+  position:absolute;inset:0;border-radius:50%;
+  background:rgba(0,0,0,0.4);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 0.2s;
+  font-size:9px;color:#fff;font-weight:600;gap:2px;
+}
+.gi-photo-wrap:hover .gi-photo-overlay{opacity:1;}
+.gi-photo-overlay svg{width:16px;height:16px;}
+#group-photo-input{display:none;}
+
+.gi-name-block{flex:1;}
+.gi-group-name{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.gi-group-meta{font-size:12px;color:var(--text2);}
+
+.gi-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;}
+
+/* Member rows (WhatsApp-style list) */
+.gi-members-list{display:flex;flex-direction:column;gap:2px;margin-bottom:12px;max-height:200px;overflow-y:auto;}
+.gi-members-list::-webkit-scrollbar{width:3px;}
+.gi-members-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.gi-member-row{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 4px;border-radius:10px;
+  transition:background 0.12s;
+}
+.gi-member-row:hover{background:var(--surface2);}
+.gi-member-av{
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;flex-shrink:0;
+  overflow:hidden;
+}
+.gi-member-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.gi-member-info{flex:1;min-width:0;}
+.gi-member-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;}
+.gi-member-email{font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.admin-badge{
+  font-size:10px;font-weight:700;
+  background:rgba(0,168,132,0.15);color:var(--accent);
+  border:1px solid rgba(0,168,132,0.3);
+  padding:1px 7px;border-radius:10px;
+  flex-shrink:0;
+}
+.gi-member-action{
+  background:transparent;border:none;
+  color:var(--text2);cursor:pointer;
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;flex-shrink:0;
+}
+.gi-member-action:hover{background:rgba(241,92,109,0.15);color:var(--danger);}
+.gi-member-action svg{width:14px;height:14px;}
+
+.gi-actions{display:flex;gap:8px;flex-wrap:wrap;}
 .gi-btn{
   padding:7px 16px;border-radius:20px;
   font-size:12px;font-weight:600;font-family:var(--font);
@@ -784,8 +844,25 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 
       <!-- Group info panel -->
       <div id="group-info-panel">
+        <!-- Group photo + name row -->
+        <div class="gi-photo-row">
+          <div class="gi-photo-wrap" onclick="document.getElementById('group-photo-input').click()" title="Change group photo">
+            <div class="gi-photo" id="gi-photo-display">👥</div>
+            <div class="gi-photo-overlay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Change
+            </div>
+          </div>
+          <input type="file" id="group-photo-input" accept="image/*" onchange="uploadGroupPhoto(this)"/>
+          <div class="gi-name-block">
+            <div class="gi-group-name" id="gi-group-name">Group</div>
+            <div class="gi-group-meta" id="gi-group-meta">0 participants</div>
+          </div>
+        </div>
+        <!-- Members list -->
         <div class="gi-label">Members</div>
-        <div class="gi-members" id="group-members-list"></div>
+        <div class="gi-members-list" id="group-members-list"></div>
+        <!-- Actions -->
         <div class="gi-actions">
           <button class="gi-btn gi-btn-add" onclick="openAddMembers()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
@@ -1638,24 +1715,148 @@ function openGroupInfo() {
 }
 
 async function loadGroupMembers() {
+  // Update name + meta in panel
+  document.getElementById('gi-group-name').textContent = currentGroup.name;
+
+  // Show group photo if exists
+  var photoEl = document.getElementById('gi-photo-display');
+  if (currentGroup.photo_url) {
+    photoEl.innerHTML = '<img src="' + currentGroup.photo_url + '" alt="group"/>';
+  } else {
+    photoEl.innerHTML = '👥';
+  }
+
   var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/members');
   var data = await res.json();
   var list = document.getElementById('group-members-list');
   list.innerHTML = '';
+
+  // Determine if I am admin
+  var amIAdmin = currentGroup.created_by === myEmail;
+
   if (data.success) {
-    data.members.forEach(function(email) {
-      var chip = document.createElement('div');
-      chip.className = 'gi-chip';
-      var avDiv = document.createElement('div');
-      avDiv.className = 'gi-chip-av';
-      avDiv.textContent = getDisplayName(email)[0].toUpperCase();
-      chip.appendChild(avDiv);
-      var label = document.createElement('span');
-      label.textContent = email === myEmail ? getDisplayName(email) + ' (You)' : getDisplayName(email);
-      chip.appendChild(label);
-      list.appendChild(chip);
+    var members = data.members; // array of email strings or objects
+    document.getElementById('gi-group-meta').textContent = members.length + ' participants';
+
+    members.forEach(function(memberEmail) {
+      var email = typeof memberEmail === 'object' ? memberEmail.email : memberEmail;
+      var isAdmin = currentGroup.created_by === email;
+      var isMe = email === myEmail;
+
+      var row = document.createElement('div');
+      row.className = 'gi-member-row';
+
+      // Avatar
+      var p = profilesMap[email];
+      var color = p ? (colorMap[p.avatar_color] || colorMap['av0']) : colorMap[avClass(email)];
+      var letter = (p && p.name) ? p.name[0].toUpperCase() : email[0].toUpperCase();
+      var avEl = document.createElement('div');
+      avEl.className = 'gi-member-av';
+      if (p && p.avatar_url) {
+        avEl.innerHTML = '<img src="' + p.avatar_url + '" alt=""/>';
+      } else {
+        avEl.style.background = color;
+        avEl.textContent = letter;
+      }
+
+      // Info
+      var infoEl = document.createElement('div');
+      infoEl.className = 'gi-member-info';
+      var nameRow = document.createElement('div');
+      nameRow.className = 'gi-member-name';
+      nameRow.textContent = isMe ? getDisplayName(email) + ' (You)' : getDisplayName(email);
+      if (isAdmin) {
+        var badge = document.createElement('span');
+        badge.className = 'admin-badge';
+        badge.textContent = 'Admin';
+        nameRow.appendChild(badge);
+      }
+      var emailRow = document.createElement('div');
+      emailRow.className = 'gi-member-email';
+      emailRow.textContent = email;
+      infoEl.appendChild(nameRow);
+      infoEl.appendChild(emailRow);
+
+      row.appendChild(avEl);
+      row.appendChild(infoEl);
+
+      // Remove button — admin only, not for self
+      if (amIAdmin && !isMe) {
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'gi-member-action';
+        removeBtn.title = 'Remove member';
+        removeBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/></svg>';
+        removeBtn.onclick = function(e) {
+          e.stopPropagation();
+          removeMember(email);
+        };
+        row.appendChild(removeBtn);
+      }
+
+      list.appendChild(row);
     });
   }
+}
+
+async function removeMember(email) {
+  if (!confirm('Remove ' + getDisplayName(email) + ' from the group?')) return;
+  try {
+    var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/members/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, requestedBy: myEmail })
+    });
+    var data = await res.json();
+    if (data.success) {
+      loadGroupMembers();
+    } else {
+      alert(data.message || 'Could not remove member');
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+async function uploadGroupPhoto(input) {
+  var file = input.files[0];
+  if (!file || !currentGroup) return;
+  var formData = new FormData();
+  formData.append('file', file);
+  formData.append('groupId', currentGroup.id);
+  try {
+    var res = await fetch(SERVER + '/upload', { method: 'POST', body: formData });
+    var data = await res.json();
+    if (data.success) {
+      // Update group photo via API
+      var res2 = await fetch(SERVER + '/groups/' + currentGroup.id + '/photo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo_url: data.fileUrl, email: myEmail })
+      });
+      var data2 = await res2.json();
+      if (data2.success) {
+        currentGroup.photo_url = data.fileUrl;
+        // Update chat topbar avatar
+        var ctAv = document.getElementById('ct-avatar');
+        ctAv.innerHTML = '<img src="' + data.fileUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
+        // Update sidebar group card
+        loadGroups();
+        // Refresh panel photo
+        document.getElementById('gi-photo-display').innerHTML = '<img src="' + data.fileUrl + '" alt="group"/>';
+      } else {
+        // Still update locally even if backend doesn't support it yet
+        currentGroup.photo_url = data.fileUrl;
+        document.getElementById('gi-photo-display').innerHTML = '<img src="' + data.fileUrl + '" alt="group"/>';
+        var ctAv2 = document.getElementById('ct-avatar');
+        ctAv2.innerHTML = '<img src="' + data.fileUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
+      }
+    } else {
+      alert('Photo upload failed!');
+    }
+  } catch(e) {
+    alert('Upload error: ' + e.message);
+  }
+  input.value = '';
 }
 
 async function leaveGroup() {
