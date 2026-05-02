@@ -620,8 +620,9 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 #rec-bar{
   display:none;align-items:center;gap:8px;
-  background:var(--surface);border:1px solid rgba(241,92,109,0.4);
-  border-radius:12px;padding:6px 10px;flex:1;
+  background:var(--surface);border:1px solid rgba(241,92,109,0.35);
+  border-radius:12px;padding:6px 10px;
+  flex:1;width:100%;min-width:0;
 }
 #rec-bar.show{display:flex;}
 #rec-timer{font-size:13px;font-weight:700;color:var(--danger);min-width:38px;flex-shrink:0;}
@@ -1757,6 +1758,7 @@ function startRecording() {
     document.getElementById('msg-input').style.display = 'none';
     document.getElementById('send-btn').style.display = 'none';
     document.getElementById('voice-btn').style.display = 'none';
+    document.getElementById('attach-btn').style.display = 'none';
     document.getElementById('rec-bar').classList.add('show');
     updateRecTimer();
     recTimerInterval = setInterval(function() { recSeconds++; updateRecTimer(); }, 1000);
@@ -1797,6 +1799,7 @@ function cleanupRecording() {
   document.getElementById('msg-input').style.display = '';
   document.getElementById('send-btn').style.display = '';
   document.getElementById('voice-btn').style.display = '';
+  document.getElementById('attach-btn').style.display = '';
   document.getElementById('rec-bar').classList.remove('show');
   document.getElementById('rec-timer').textContent = '0:00';
   var canvas = document.getElementById('rec-wave');
