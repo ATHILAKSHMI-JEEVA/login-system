@@ -31,23 +31,20 @@ app.use(cors({
   credentials: true
 }));
 
-// ─── Uploads folder ───
-const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
-app.use("/uploads", express.static(uploadsDir));
-
 // ─── Serve frontend ───
 const frontendDir = path.join(__dirname, "../frontend");
 app.use(express.static(frontendDir));
 
-// ─── Multer config ───
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename:    (req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e6);
-    cb(null, unique + path.extname(file.originalname));
-  }
+// ─── Cloudinary Storage (replaces diskStorage) ───
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => ({
+    folder: "chat-uploads",
+    resource_type: "auto",
+    public_id: Date.now() + "-" + Math.round(Math.random() * 1e6),
+  }),
 });
+
 const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 } // 50MB
@@ -68,7 +65,6 @@ db.connect(err => {
 });
 
 // ─── Tables ───
-// ─── Group Tables ───
 db.query(`
   CREATE TABLE IF NOT EXISTS groups_table (
     id          INT AUTO_INCREMENT PRIMARY KEY,
@@ -272,6 +268,8 @@ app.get("/messages/:user1/:user2", (req, res) => {
 // ─── FILE UPLOAD ───
 app.post("/upload", upload.single("file"), (req, res) => {
   if (!req.file) return res.json({ success: false, message: "No file" });
+
+  // Cloudinary returns full URL in req.file.path
   const fileUrl  = req.file.path;
   const fileName = req.file.originalname;
   const mimeType = req.file.mimetype;
@@ -394,26 +392,24 @@ app.get('/profile/:email', (req, res) => {
 app.post('/profile', upload.single('avatar'), async (req, res) => {
   const { email, name, bio, avatar_color } = req.body;
   if (!email) return res.json({ success: false, message: 'Email required' });
-  
+
+  // Cloudinary returns full URL in req.file.path
   let avatar_url = null;
   if (req.file) {
     avatar_url = req.file.path;
   }
-
-  const fields = { name, bio, avatar_color };
-  if (avatar_url) fields.avatar_url = avatar_url;
 
   db.query(
     'INSERT INTO user_profiles (email, name, bio, avatar_color, avatar_url) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE name=VALUES(name), bio=VALUES(bio), avatar_color=VALUES(avatar_color)' + (avatar_url ? ', avatar_url=VALUES(avatar_url)' : ''),
     [email, name || '', bio || '', avatar_color || 'av0', avatar_url || ''],
     (err) => {
       if (err) return res.json({ success: false, message: err.message });
-      res.json({ success: true });
+      res.json({ success: true, avatar_url });
     }
   );
 });
 
-// ─── GET ALL PROFILES (for chat) ───
+// ─── GET ALL PROFILES ───
 app.get('/profiles', (req, res) => {
   db.query('SELECT email, name, bio, avatar_url, avatar_color FROM user_profiles', (err, result) => {
     if (err) return res.json({ success: false });
@@ -450,12 +446,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("private-message", ({ to, from, message, type, fileUrl, fileName }) => {
-    // Save to DB
     db.query(
       "INSERT INTO messages (sender, receiver, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
       [from, to, message || "", type || "text", fileUrl || null, fileName || null]
     );
-    // Send to receiver
     const receiverSocketId = onlineUsers.get(to);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("private-message", {
@@ -463,6 +457,17 @@ io.on("connection", (socket) => {
         time: new Date().toISOString()
       });
     }
+  });
+
+  socket.on("group-message", ({ groupId, from, message, type, fileUrl, fileName }) => {
+    db.query(
+      "INSERT INTO group_messages (group_id, sender, message, type, file_url, file_name) VALUES (?, ?, ?, ?, ?, ?)",
+      [groupId, from, message || "", type || "text", fileUrl || null, fileName || null]
+    );
+    io.emit("group-message", {
+      groupId, from, message, type, fileUrl, fileName,
+      time: new Date().toISOString()
+    });
   });
 
   socket.on("disconnect", () => {

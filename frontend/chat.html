@@ -21,7 +21,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 .logo{font-size:17px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:8px;}
 .logo span{color:var(--text);}
 #topbar-user{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-left:auto;}
-#topbar-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+#topbar-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;overflow:hidden;flex-shrink:0;}
+#topbar-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+#topbar-name{font-size:13px;color:var(--text);font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #logout-btn{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:var(--font);}
 #logout-btn:hover{border-color:var(--danger);color:var(--danger);}
 
@@ -51,7 +53,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 .user-card:hover,.group-card:hover{background:var(--card);}
 .user-card.active,.group-card.active{background:#162038;}
 .avatar-wrap{position:relative;flex-shrink:0;}
-.card-avatar{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;}
+.card-avatar{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;overflow:hidden;}
+.card-avatar img{width:100%;height:100%;object-fit:cover;border-radius:13px;}
 .group-avatar{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f59e0b,#ef4444);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .status-dot{position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;border:2px solid var(--surface);background:#374151;}
 .status-dot.online{background:var(--online);}
@@ -68,7 +71,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 
 #chat-view{flex:1;display:none;flex-direction:column;overflow:hidden;}
 #chat-topbar{padding:10px 18px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:10px;}
-#ct-avatar{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;}
+#ct-avatar{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;overflow:hidden;flex-shrink:0;}
+#ct-avatar img{width:100%;height:100%;object-fit:cover;border-radius:11px;}
 #ct-name{font-size:14px;font-weight:700;}
 #ct-status{font-size:11px;color:var(--muted);}
 #ct-status.online{color:var(--online);}
@@ -112,7 +116,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
 #img-preview-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;}
 #img-preview-overlay.show{display:flex;}
 
-/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:380px;max-width:90vw;}
@@ -151,7 +154,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
   <div class="logo">💬 <span>YourApp</span></div>
   <div id="topbar-user">
     <div id="topbar-avatar">?</div>
-    <span id="topbar-email">-</span>
+    <span id="topbar-name">-</span>
     <a href="profile.html" style="padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;border-radius:6px;text-decoration:none;">👤 Profile</a>
     <button id="logout-btn" onclick="logout()">Logout</button>
   </div>
@@ -196,11 +199,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
           <div id="ct-status">-</div>
           <div id="typing-indicator">typing...</div>
         </div>
-        <div id="group-actions" style="display:none;display:flex;gap:8px;">
+        <div id="group-actions" style="display:none;">
           <button class="icon-btn" onclick="openGroupInfo()" title="Group Info" style="font-size:14px;">👥</button>
         </div>
       </div>
-      <!-- Group Info Panel -->
       <div id="group-info-panel" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;">
         <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">MEMBERS</div>
         <div id="group-members-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
@@ -224,7 +226,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
   <img id="preview-img" src="" alt="preview"/>
 </div>
 
-<!-- Add Members Modal -->
 <div class="modal-overlay" id="add-members-modal">
   <div class="modal">
     <h3>➕ Add Members</h3>
@@ -236,7 +237,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);display:flex
   </div>
 </div>
 
-<!-- Group Modal -->
 <div class="modal-overlay" id="group-modal">
   <div class="modal">
     <h3>➕ Create New Group</h3>
@@ -259,27 +259,92 @@ const myEmail = localStorage.getItem('email');
 
 if (!token || !myEmail) document.getElementById('login-wall').style.display = 'flex';
 
-document.getElementById('topbar-avatar').textContent = myEmail ? myEmail[0].toUpperCase() : '?';
-document.getElementById('topbar-email').textContent  = myEmail || '';
+// ─── Topbar: name + avatar from localStorage ───
+var storedName   = localStorage.getItem('userName');
+var storedAvatar = localStorage.getItem('userAvatar');
+var storedColor  = localStorage.getItem('userAvatarColor') || 'av0';
+
+var topbarAv = document.getElementById('topbar-avatar');
+var topbarNm = document.getElementById('topbar-name');
+topbarNm.textContent = storedName || myEmail || '';
+
+if (storedAvatar) {
+  topbarAv.innerHTML = '<img src="' + storedAvatar + '" alt=""/>';
+} else {
+  topbarAv.textContent = myEmail ? myEmail[0].toUpperCase() : '?';
+}
+
+// ─── Also load fresh from API ───
+(async function loadMyProfile() {
+  try {
+    var res  = await fetch(SERVER + '/profile/' + encodeURIComponent(myEmail));
+    var data = await res.json();
+    if (data.success && data.profile) {
+      var p = data.profile;
+      var name = p.name || myEmail.split('@')[0];
+      topbarNm.textContent = name;
+      localStorage.setItem('userName', name);
+      if (p.avatar_url) {
+        topbarAv.innerHTML = '<img src="' + p.avatar_url + '" alt=""/>';
+        localStorage.setItem('userAvatar', p.avatar_url);
+      } else {
+        topbarAv.textContent = myEmail[0].toUpperCase();
+        localStorage.removeItem('userAvatar');
+      }
+    }
+  } catch(e) {}
+})();
 
 const socket = io(SERVER, { transports: ['polling'] });
 socket.emit('join', myEmail);
 
-let onlineList  = [];
-let allUsers    = [];
-let myGroups    = [];
-let currentChat = null;
+let onlineList   = [];
+let allUsers     = [];
+let myGroups     = [];
+let profilesMap  = {}; // email → { name, avatar_url, avatar_color }
+let currentChat  = null;
 let currentGroup = null;
-let activeTab   = 'all';
-let lastSeenMap = {};
-let unreadMap   = {};
-let typingTimer = null;
+let activeTab    = 'all';
+let lastSeenMap  = {};
+let unreadMap    = {};
+let typingTimer  = null;
+
+const colorMap = {
+  av0:'linear-gradient(135deg,#3b82f6,#8b5cf6)',
+  av1:'linear-gradient(135deg,#06d6a0,#3b82f6)',
+  av2:'linear-gradient(135deg,#f59e0b,#ef4444)',
+  av3:'linear-gradient(135deg,#ec4899,#8b5cf6)',
+  av4:'linear-gradient(135deg,#10b981,#06d6a0)',
+  av5:'linear-gradient(135deg,#f97316,#f59e0b)',
+  av6:'linear-gradient(135deg,#6366f1,#3b82f6)',
+  av7:'linear-gradient(135deg,#14b8a6,#3b82f6)'
+};
 
 function avClass(email) {
   const c = ['av0','av1','av2','av3','av4','av5','av6','av7'];
   let h = 0;
   for (let ch of email) h = (h * 31 + ch.charCodeAt(0)) % c.length;
   return c[h];
+}
+
+// Build avatar HTML for a user
+function buildAvatar(email, size, radius) {
+  size   = size   || 42;
+  radius = radius || 13;
+  var p  = profilesMap[email];
+  var style = 'width:' + size + 'px;height:' + size + 'px;border-radius:' + radius + 'px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:' + Math.round(size * 0.38) + 'px;color:#fff;overflow:hidden;flex-shrink:0;';
+
+  if (p && p.avatar_url) {
+    return '<div style="' + style + '"><img src="' + p.avatar_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:' + radius + 'px;" alt=""/></div>';
+  }
+  var color = p ? (colorMap[p.avatar_color] || colorMap['av0']) : colorMap[avClass(email)];
+  var letter = (p && p.name) ? p.name[0].toUpperCase() : email[0].toUpperCase();
+  return '<div style="' + style + 'background:' + color + ';">' + letter + '</div>';
+}
+
+function getDisplayName(email) {
+  var p = profilesMap[email];
+  return (p && p.name) ? p.name : email;
 }
 
 function formatLastSeen(iso) {
@@ -350,7 +415,19 @@ socket.on('group-message', function(data) {
   }
 });
 
-// Load users
+// Load all profiles first, then users
+async function loadProfiles() {
+  try {
+    var res  = await fetch(SERVER + '/profiles');
+    var data = await res.json();
+    if (data.success) {
+      data.profiles.forEach(function(p) {
+        profilesMap[p.email] = p;
+      });
+    }
+  } catch(e) {}
+}
+
 async function loadUsers() {
   try {
     const res  = await fetch(SERVER + '/users');
@@ -362,7 +439,6 @@ async function loadUsers() {
   } catch(e) { console.log('Load users error:', e); }
 }
 
-// Load groups
 async function loadGroups() {
   try {
     const res  = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
@@ -374,13 +450,11 @@ async function loadGroups() {
   } catch(e) { console.log('Load groups error:', e); }
 }
 
-function renderUsers(filter) {
-  filter = filter || '';
+function renderUsers() {
   const list = document.getElementById('users-list');
-  const q = document.getElementById('search-input').value.toLowerCase();
-  filter = q || filter;
+  const q    = document.getElementById('search-input').value.toLowerCase();
 
-  let users = allUsers.filter(function(u) { return u.toLowerCase().includes(filter); });
+  let users = allUsers.filter(function(u) { return u.toLowerCase().includes(q) || getDisplayName(u).toLowerCase().includes(q); });
   if (activeTab === 'online') users = users.filter(function(u) { return onlineList.includes(u); });
 
   const onlineCnt = allUsers.filter(function(u) { return onlineList.includes(u); }).length;
@@ -393,21 +467,20 @@ function renderUsers(filter) {
   }
 
   users.forEach(function(email) {
-    const isOnline = onlineList.includes(email);
-    const av = avClass(email);
-    const unread = unreadMap[email] || 0;
-    const sub = isOnline ? 'Online now' : formatLastSeen(lastSeenMap[email]);
+    const isOnline   = onlineList.includes(email);
+    const unread     = unreadMap[email] || 0;
+    const sub        = isOnline ? 'Online now' : formatLastSeen(lastSeenMap[email]);
+    const displayName = getDisplayName(email);
 
     const card = document.createElement('div');
     card.className = 'user-card' + (currentChat === email ? ' active' : '');
-    card.dataset.email = email;
     card.innerHTML =
       '<div class="avatar-wrap">' +
-        '<div class="card-avatar ' + av + '">' + email[0].toUpperCase() + '</div>' +
+        buildAvatar(email, 42, 13) +
         '<div class="status-dot ' + (isOnline ? 'online' : '') + '"></div>' +
       '</div>' +
       '<div class="card-info">' +
-        '<div class="card-name">' + email + '</div>' +
+        '<div class="card-name">' + escHtml(displayName) + '</div>' +
         '<div class="card-sub ' + (isOnline ? 'online-text' : '') + '">' + (isOnline ? '🟢 ' : '') + sub + '</div>' +
       '</div>' +
       '<div class="unread-badge" style="' + (unread > 0 ? 'display:flex' : 'display:none') + '">' + unread + '</div>';
@@ -455,15 +528,14 @@ function setTab(tab, btn) {
 document.getElementById('search-input').oninput = function() { renderUsers(); };
 
 async function openChat(email) {
-  currentChat = email;
+  currentChat  = email;
   currentGroup = null;
   unreadMap[email] = 0;
   renderUsers();
   renderGroups();
 
   document.getElementById('empty-state').style.display = 'none';
-  const cv = document.getElementById('chat-view');
-  cv.style.display = 'flex';
+  document.getElementById('chat-view').style.display   = 'flex';
   updateChatHeader();
   socket.emit('msg-seen', { to: email, from: myEmail });
   showGroupActions(false);
@@ -487,49 +559,58 @@ async function openChat(email) {
       appendBubble(m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name);
     });
   } else {
-    area.innerHTML = '<div class="no-msgs"><span style="font-size:28px">👋</span><span>Say hi to ' + email.split('@')[0] + '!</span></div>';
+    area.innerHTML = '<div class="no-msgs"><span style="font-size:28px">👋</span><span>Say hi to ' + escHtml(getDisplayName(email)) + '!</span></div>';
   }
   scrollBottom();
 }
 
 function updateChatHeader() {
-  var email = currentChat;
+  var email    = currentChat;
   var isOnline = onlineList.includes(email);
-  var av = avClass(email);
-  var ctAv = document.getElementById('ct-avatar');
-  ctAv.textContent = email[0].toUpperCase();
-  ctAv.className = av;
-  ctAv.style.background = '';
-  document.getElementById('ct-name').textContent = email;
+  var p        = profilesMap[email];
+  var ctAv     = document.getElementById('ct-avatar');
+  var name     = getDisplayName(email);
+
+  if (p && p.avatar_url) {
+    ctAv.innerHTML = '<img src="' + p.avatar_url + '" alt=""/>';
+    ctAv.className = '';
+    ctAv.style.background = 'transparent';
+  } else {
+    var color = p ? (colorMap[p.avatar_color] || colorMap['av0']) : colorMap[avClass(email)];
+    ctAv.textContent = name[0].toUpperCase();
+    ctAv.className   = '';
+    ctAv.style.background = color;
+  }
+
+  document.getElementById('ct-name').textContent = name;
   var st = document.getElementById('ct-status');
   st.textContent = isOnline ? '🟢 Online now' : formatLastSeen(lastSeenMap[email]);
-  st.className = isOnline ? 'online' : '';
+  st.className   = isOnline ? 'online' : '';
 }
 
 async function openGroupChat(group) {
   currentGroup = group;
-  currentChat = null;
+  currentChat  = null;
   renderUsers();
   renderGroups();
 
   document.getElementById('empty-state').style.display = 'none';
-  var cv = document.getElementById('chat-view');
-  cv.style.display = 'flex';
+  document.getElementById('chat-view').style.display   = 'flex';
 
   var ctAv = document.getElementById('ct-avatar');
-  ctAv.textContent = '👥';
-  ctAv.className = '';
+  ctAv.textContent     = '👥';
+  ctAv.className       = '';
   ctAv.style.background = 'linear-gradient(135deg,#f59e0b,#ef4444)';
-  document.getElementById('ct-name').textContent = group.name;
+  document.getElementById('ct-name').textContent   = group.name;
   document.getElementById('ct-status').textContent = 'Group Chat';
-  document.getElementById('ct-status').className = '';
+  document.getElementById('ct-status').className   = '';
 
   socket.emit('join-group', group.id);
   showGroupActions(true);
 
   const res  = await fetch(SERVER + '/group-messages/' + group.id);
   const data = await res.json();
-  var area = document.getElementById('messages-area');
+  var area   = document.getElementById('messages-area');
   area.innerHTML = '';
 
   if (data.success && data.messages.length > 0) {
@@ -544,14 +625,14 @@ async function openGroupChat(group) {
 
 function appendBubble(text, who, time, type, fileUrl, fileName) {
   type = type || 'text';
-  var area = document.getElementById('messages-area');
+  var area  = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
 
-  var group = document.createElement('div');
+  var group   = document.createElement('div');
   group.className = 'msg-group ' + who;
-  var t = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
-  var tick = who === 'me' ? '<span class="tick">✓</span>' : '';
+  var t       = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var tick    = who === 'me' ? '<span class="tick">✓</span>' : '';
   var content = buildContent(text, type, fileUrl, fileName);
   group.innerHTML = content + '<div class="msg-time">' + t + tick + '</div>';
   area.appendChild(group);
@@ -560,14 +641,16 @@ function appendBubble(text, who, time, type, fileUrl, fileName) {
 
 function appendGroupBubble(sender, text, who, time, type, fileUrl, fileName) {
   type = type || 'text';
-  var area = document.getElementById('messages-area');
+  var area  = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
 
   var group = document.createElement('div');
   group.className = 'msg-group ' + who;
-  var t = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
-  var senderLabel = who === 'them' ? '<div class="sender-name">' + sender.split('@')[0] + '</div>' : '';
+  var t     = time ? new Date(time).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : '';
+  var senderLabel = who === 'them'
+    ? '<div class="sender-name">' + escHtml(getDisplayName(sender)) + '</div>'
+    : '';
   var content = buildContent(text, type, fileUrl, fileName);
   group.innerHTML = senderLabel + content + '<div class="msg-time">' + t + '</div>';
   area.appendChild(group);
@@ -575,18 +658,14 @@ function appendGroupBubble(sender, text, who, time, type, fileUrl, fileName) {
 }
 
 function buildContent(text, type, fileUrl, fileName) {
-  if (type === 'image' && fileUrl) {
+  if (type === 'image' && fileUrl)
     return '<img class="img-bubble" src="' + fileUrl + '" alt="image" onclick="previewImg(this.src)"/>';
-  }
-  if (type === 'video' && fileUrl) {
+  if (type === 'video' && fileUrl)
     return '<video class="video-bubble" controls src="' + fileUrl + '"></video>';
-  }
-  if (type === 'audio' && fileUrl) {
+  if (type === 'audio' && fileUrl)
     return '<audio class="audio-bubble" controls src="' + fileUrl + '"></audio>';
-  }
-  if (type === 'file' && fileUrl) {
+  if (type === 'file' && fileUrl)
     return '<a class="file-bubble" href="' + fileUrl + '" target="_blank" download="' + (fileName || 'file') + '"><span class="file-icon">📄</span><span>' + escHtml(fileName || 'Download') + '</span></a>';
-  }
   return '<div class="bubble">' + escHtml(text || '') + '</div>';
 }
 
@@ -599,9 +678,7 @@ function sendMsg() {
   var input = document.getElementById('msg-input');
   var text  = input.value.trim();
   if (!text) return;
-
   var now = new Date().toISOString();
-
   if (currentGroup) {
     appendGroupBubble(myEmail, text, 'me', now, 'text', null, null);
     socket.emit('group-message', { groupId: currentGroup.id, from: myEmail, message: text, type: 'text' });
@@ -610,7 +687,6 @@ function sendMsg() {
     socket.emit('private-message', { to: currentChat, from: myEmail, message: text, type: 'text' });
     socket.emit('stop-typing', { to: currentChat, from: myEmail });
   }
-
   input.value = '';
   input.style.height = 'auto';
 }
@@ -630,7 +706,6 @@ document.getElementById('msg-input').addEventListener('input', function() {
   }, 1500);
 });
 
-// File upload
 document.getElementById('file-input').addEventListener('change', async function() {
   var file = this.files[0];
   if (!file || (!currentChat && !currentGroup)) return;
@@ -648,14 +723,11 @@ document.getElementById('file-input').addEventListener('change', async function(
         appendBubble('', 'me', now, data.type, data.fileUrl, data.fileName);
         socket.emit('private-message', { to: currentChat, from: myEmail, message: '', type: data.type, fileUrl: data.fileUrl, fileName: data.fileName });
       }
-    } else {
-      alert('Upload failed!');
-    }
+    } else { alert('Upload failed!'); }
   } catch(e) { alert('Upload failed!'); }
   this.value = '';
 });
 
-// Group modal
 function openCreateGroup() {
   var list = document.getElementById('members-checklist');
   list.innerHTML = '';
@@ -663,10 +735,9 @@ function openCreateGroup() {
     var div = document.createElement('label');
     div.className = 'member-check';
     var cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = email;
+    cb.type = 'checkbox'; cb.value = email;
     div.appendChild(cb);
-    div.appendChild(document.createTextNode(' ' + email));
+    div.appendChild(document.createTextNode(' ' + getDisplayName(email)));
     list.appendChild(div);
   });
   document.getElementById('group-modal').classList.add('show');
@@ -683,7 +754,6 @@ async function createGroup() {
   var checked = [];
   document.querySelectorAll('#members-checklist input:checked').forEach(function(i) { checked.push(i.value); });
   if (!checked.length) { alert('Select at least one member!'); return; }
-
   try {
     var res  = await fetch(SERVER + '/groups', {
       method: 'POST',
@@ -700,17 +770,14 @@ async function createGroup() {
   } catch(e) { alert('Group create failed!'); }
 }
 
-// Group info
 function openGroupInfo() {
   var panel = document.getElementById('group-info-panel');
   panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  if (panel.style.display === 'block' && currentGroup) {
-    loadGroupMembers();
-  }
+  if (panel.style.display === 'block' && currentGroup) loadGroupMembers();
 }
 
 async function loadGroupMembers() {
-  var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/members');
+  var res  = await fetch(SERVER + '/groups/' + currentGroup.id + '/members');
   var data = await res.json();
   var list = document.getElementById('group-members-list');
   list.innerHTML = '';
@@ -718,7 +785,7 @@ async function loadGroupMembers() {
     data.members.forEach(function(email) {
       var chip = document.createElement('div');
       chip.style.cssText = 'background:var(--card);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:12px;color:var(--text);';
-      chip.textContent = email === myEmail ? email + ' (You)' : email;
+      chip.textContent = email === myEmail ? getDisplayName(email) + ' (You)' : getDisplayName(email);
       list.appendChild(chip);
     });
   }
@@ -726,7 +793,7 @@ async function loadGroupMembers() {
 
 async function leaveGroup() {
   if (!confirm('Leave this group?')) return;
-  var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/leave', {
+  var res  = await fetch(SERVER + '/groups/' + currentGroup.id + '/leave', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: myEmail })
@@ -734,7 +801,7 @@ async function leaveGroup() {
   var data = await res.json();
   if (data.success) {
     currentGroup = null;
-    document.getElementById('chat-view').style.display = 'none';
+    document.getElementById('chat-view').style.display   = 'none';
     document.getElementById('empty-state').style.display = 'flex';
     document.getElementById('group-info-panel').style.display = 'none';
     await loadGroups();
@@ -749,10 +816,9 @@ function openAddMembers() {
     var div = document.createElement('label');
     div.className = 'member-check';
     var cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.value = email;
+    cb.type = 'checkbox'; cb.value = email;
     div.appendChild(cb);
-    div.appendChild(document.createTextNode(' ' + email));
+    div.appendChild(document.createTextNode(' ' + getDisplayName(email)));
     list.appendChild(div);
   });
   document.getElementById('add-members-modal').classList.add('show');
@@ -762,7 +828,7 @@ async function addMembers() {
   var checked = [];
   document.querySelectorAll('#add-members-checklist input:checked').forEach(function(i) { checked.push(i.value); });
   if (!checked.length) { alert('Select members!'); return; }
-  var res = await fetch(SERVER + '/groups/' + currentGroup.id + '/members', {
+  var res  = await fetch(SERVER + '/groups/' + currentGroup.id + '/members', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ members: checked })
@@ -774,7 +840,6 @@ async function addMembers() {
   }
 }
 
-// Show group actions when in group chat
 function showGroupActions(show) {
   document.getElementById('group-actions').style.display = show ? 'flex' : 'none';
   if (!show) document.getElementById('group-info-panel').style.display = 'none';
@@ -785,8 +850,12 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-loadUsers();
-loadGroups();
+// Load order matters: profiles first, then users
+(async function init() {
+  await loadProfiles();
+  await loadUsers();
+  await loadGroups();
+})();
 </script>
 </body>
 </html>
