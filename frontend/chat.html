@@ -115,7 +115,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   display:flex;flex-direction:column;overflow:hidden;
 }
 
-/* Panel header */
 #panel-header{
   padding:14px 16px 10px;
   background:var(--surface);
@@ -126,7 +125,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 #panel-header h2{font-size:18px;font-weight:700;color:var(--text);}
 .header-actions{display:flex;gap:4px;}
 
-/* Search */
 #search-wrap{
   padding:8px 12px 10px;
   border-bottom:1px solid var(--border);
@@ -147,7 +145,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 #search-input::placeholder{color:var(--text2);}
 
-/* Tabs */
 #tab-bar{
   display:flex;border-bottom:1px solid var(--border);
   padding:0 16px;flex-shrink:0;
@@ -165,20 +162,17 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-btn:hover:not(.active){color:var(--text3);}
 
-/* Online count */
 #online-count{
   font-size:11px;color:var(--text2);
   margin-top:4px;display:flex;align-items:center;gap:6px;
 }
 .online-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);display:inline-block;}
 
-/* Sidebar scroll */
 #sidebar-scroll{flex:1;overflow-y:auto;}
 #sidebar-scroll::-webkit-scrollbar{width:4px;}
 #sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 #sidebar-scroll::-webkit-scrollbar-track{background:transparent;}
 
-/* Create group btn */
 .create-group-btn{
   margin:10px 12px 6px;
   padding:10px 14px;
@@ -212,13 +206,13 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 .card-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 
-/* Group avatar — WhatsApp grid style */
 .group-avatar{
   width:48px;height:48px;border-radius:50%;
   background:linear-gradient(135deg,#25d366,#128c7e);
   display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;font-size:22px;
+  flex-shrink:0;font-size:22px;overflow:hidden;
 }
+.group-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 
 .status-dot{
   position:absolute;bottom:1px;right:1px;
@@ -255,8 +249,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 
 /* ── Right Panel ── */
 #right-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
-
-/* Chat BG pattern - WhatsApp style */
 #right-panel::before{
   content:'';
   position:absolute;inset:0;
@@ -265,7 +257,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   pointer-events:none;z-index:0;
 }
 
-/* Empty state */
 #empty-state{
   flex:1;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:12px;
@@ -289,7 +280,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   padding:8px 16px;border-radius:20px;
 }
 
-/* Chat view */
 #chat-view{
   flex:1;display:none;flex-direction:column;
   overflow:hidden;position:relative;z-index:1;
@@ -308,7 +298,9 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   display:flex;align-items:center;justify-content:center;
   font-weight:700;font-size:16px;color:#fff;
   overflow:hidden;flex-shrink:0;cursor:pointer;
+  transition:transform 0.15s, filter 0.15s;
 }
+#ct-avatar:hover{transform:scale(1.05);filter:brightness(0.85);}
 #ct-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 #ct-info{flex:1;cursor:pointer;}
 #ct-name{font-size:15px;font-weight:600;color:var(--text);line-height:1.2;}
@@ -327,7 +319,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
 
-/* Group photo section */
 .gi-photo-row{
   display:flex;align-items:center;gap:16px;
   padding-bottom:14px;border-bottom:1px solid var(--border);
@@ -360,10 +351,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .gi-name-block{flex:1;}
 .gi-group-name{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;}
 .gi-group-meta{font-size:12px;color:var(--text2);}
-
 .gi-label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;}
-
-/* Member rows (WhatsApp-style list) */
 .gi-members-list{display:flex;flex-direction:column;gap:2px;margin-bottom:12px;max-height:200px;overflow-y:auto;}
 .gi-members-list::-webkit-scrollbar{width:3px;}
 .gi-members-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -399,7 +387,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 .gi-member-action:hover{background:rgba(241,92,109,0.15);color:var(--danger);}
 .gi-member-action svg{width:14px;height:14px;}
-
 .gi-actions{display:flex;gap:8px;flex-wrap:wrap;}
 .gi-btn{
   padding:7px 16px;border-radius:20px;
@@ -423,7 +410,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 #messages-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 #messages-area::-webkit-scrollbar-track{background:transparent;}
 
-/* Day label */
+/* ── Day label (Today / Yesterday / date) ── */
 .day-label{
   align-self:center;
   font-size:11.5px;color:var(--text2);
@@ -432,6 +419,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   padding:4px 14px;border-radius:8px;
   margin:10px 0;font-weight:500;
   box-shadow:0 1px 2px rgba(0,0,0,0.2);
+  letter-spacing:0.2px;
 }
 
 /* Message groups */
@@ -443,7 +431,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .msg-group.me{align-self:flex-end;align-items:flex-end;}
 .msg-group.them{align-self:flex-start;align-items:flex-start;}
 
-/* Bubbles */
 .bubble{
   padding:7px 12px 6px;
   font-size:13.5px;line-height:1.5;
@@ -465,7 +452,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .me .bubble:hover{background:var(--me-msg-hover);}
 .them .bubble:hover{background:var(--them-msg-hover);}
 
-/* Bubble tail */
 .msg-group.me .bubble:last-of-type::after{
   content:'';
   position:absolute;bottom:0;right:-6px;
@@ -483,7 +469,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .msg-group.me .bubble:hover:last-of-type::after{border-bottom-color:var(--me-msg-hover);}
 .msg-group.them .bubble:hover:last-of-type::after{border-bottom-color:var(--them-msg-hover);}
 
-/* Meta row */
 .msg-meta{
   display:flex;align-items:center;gap:4px;
   margin-top:2px;padding:0 4px;
@@ -492,14 +477,12 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .tick{font-size:12px;color:var(--text2);}
 .tick.seen{color:#53bdeb;}
 
-/* Sender name in groups */
 .sender-name{
   font-size:12px;font-weight:600;
   margin-bottom:3px;margin-left:2px;
   color:var(--accent);
 }
 
-/* No messages */
 .no-msgs{
   flex:1;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
@@ -508,7 +491,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 .no-msgs-icon{font-size:40px;margin-bottom:6px;}
 
-/* Deleted bubble */
 .deleted-bubble{
   padding:7px 12px;
   border-radius:8px;
@@ -519,7 +501,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   display:flex;align-items:center;gap:6px;
 }
 
-/* Media */
 .img-bubble{max-width:240px;border-radius:10px;cursor:pointer;display:block;margin-bottom:2px;}
 .video-bubble{max-width:260px;border-radius:10px;outline:none;}
 .audio-bubble{width:220px;height:36px;border-radius:20px;accent-color:var(--accent);}
@@ -535,7 +516,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .file-bubble:hover{background:rgba(255,255,255,0.07);}
 .file-icon{font-size:22px;}
 
-/* ── Input area ── */
+/* Input area */
 #input-row{
   min-height:var(--input-h);
   padding:10px 14px;
@@ -549,11 +530,10 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   width:40px;height:40px;border-radius:50%;
   border:none;background:transparent;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;color:var(--text2);transition:background 0.15s,color 0.15s;
+  flex-shrink:0;color:var(--text2);transition:background 0.15s,color 0.15s;font-family:var(--font);
 }
 .icon-btn:hover{background:var(--surface2);color:var(--text3);}
 .icon-btn svg{width:20px;height:20px;}
-.icon-btn.emoji-btn{font-size:20px;color:var(--text2);}
 
 #msg-input{
   flex:1;background:var(--card);
@@ -577,10 +557,8 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 #send-btn:active{transform:scale(0.95);}
 #send-btn svg{width:18px;height:18px;fill:#fff;}
 
-/* File inputs */
 #file-input,#img-file-input,#video-file-input,#doc-file-input{display:none;}
 
-/* Attach menu */
 #attach-menu{
   position:absolute;bottom:72px;left:54px;
   background:var(--surface);border:1px solid var(--border);
@@ -659,11 +637,62 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 /* Image preview */
 #img-preview-overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,0.9);z-index:999;
+  background:rgba(0,0,0,0.92);z-index:1000;
   align-items:center;justify-content:center;cursor:zoom-out;
+  flex-direction:column;gap:12px;
 }
-#img-preview-overlay img{max-width:90vw;max-height:90vh;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,0.6);}
+#img-preview-overlay img{
+  max-width:90vw;max-height:85vh;border-radius:8px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  animation:zoomIn 0.2s ease;
+}
+@keyframes zoomIn{from{transform:scale(0.9);opacity:0;}to{transform:scale(1);opacity:1;}}
 #img-preview-overlay.show{display:flex;}
+#img-preview-close{
+  position:absolute;top:20px;right:24px;
+  background:rgba(255,255,255,0.1);border:none;
+  color:#fff;font-size:22px;cursor:pointer;
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
+}
+#img-preview-close:hover{background:rgba(255,255,255,0.2);}
+
+/* ── DP Viewer Modal (WhatsApp style) ── */
+#dp-modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);z-index:1001;
+  align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+  backdrop-filter:blur(6px);
+  animation:fadeIn 0.2s ease;
+}
+#dp-modal.show{display:flex;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+#dp-modal-inner{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  animation:zoomIn 0.2s ease;
+}
+#dp-img-wrap{
+  width:280px;height:280px;border-radius:50%;
+  overflow:hidden;border:3px solid rgba(255,255,255,0.15);
+  box-shadow:0 8px 40px rgba(0,0,0,0.7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:100px;
+  position:relative;
+}
+#dp-img-wrap img{width:100%;height:100%;object-fit:cover;}
+#dp-name{font-size:20px;font-weight:700;color:#fff;text-align:center;}
+#dp-email{font-size:13px;color:rgba(255,255,255,0.55);text-align:center;}
+#dp-modal-close{
+  position:absolute;top:20px;right:24px;
+  background:rgba(255,255,255,0.1);border:none;
+  color:#fff;font-size:22px;cursor:pointer;
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 0.15s;
+}
+#dp-modal-close:hover{background:rgba(255,255,255,0.2);}
 
 /* Modals */
 .modal-overlay{
@@ -730,7 +759,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 }
 .btn-create:hover{background:var(--accent-dark);}
 
-/* ── More / 3-dot dropdown ── */
+/* More / 3-dot dropdown */
 #more-menu{
   position:absolute;top:48px;right:0;
   background:var(--surface);
@@ -766,7 +795,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   color:#fff;border-radius:12px;text-decoration:none;font-weight:700;
 }
 
-/* Avatar colors */
 /* Audio player */
 .audio-wrapper{display:flex;flex-direction:column;background:var(--me-msg);border-radius:10px;padding:8px 12px;min-width:220px;max-width:260px;}
 .them .audio-wrapper{background:var(--them-msg);border:1px solid var(--border);}
@@ -779,6 +807,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .audio-time{font-size:10px;color:rgba(255,255,255,0.6);display:flex;justify-content:space-between;}
 .them .audio-time{color:var(--text2);}
 
+/* Avatar colors */
 .av0{background:linear-gradient(135deg,#3b82f6,#8b5cf6);}
 .av1{background:linear-gradient(135deg,#06d6a0,#3b82f6);}
 .av2{background:linear-gradient(135deg,#f59e0b,#ef4444);}
@@ -787,6 +816,14 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .av5{background:linear-gradient(135deg,#f97316,#f59e0b);}
 .av6{background:linear-gradient(135deg,#6366f1,#3b82f6);}
 .av7{background:linear-gradient(135deg,#14b8a6,#3b82f6);}
+
+/* Sidebar card: last message preview */
+.card-last-msg{
+  font-size:12px;color:var(--text2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  flex:1;
+}
+.card-last-msg .me-prefix{color:var(--accent);font-weight:500;}
 </style>
 </head>
 <body>
@@ -811,6 +848,16 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
   <div class="ctx-item danger" id="ctx-delete-all" onclick="ctxDeleteForEveryone()" style="display:none;">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
     Delete for Everyone
+  </div>
+</div>
+
+<!-- DP Modal -->
+<div id="dp-modal" onclick="closeDpModal(event)">
+  <button id="dp-modal-close" onclick="document.getElementById('dp-modal').classList.remove('show')">✕</button>
+  <div id="dp-modal-inner">
+    <div id="dp-img-wrap">👤</div>
+    <div id="dp-name"></div>
+    <div id="dp-email"></div>
   </div>
 </div>
 
@@ -870,14 +917,15 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
     <div id="empty-state">
       <div class="empty-icon">💬</div>
       <h3>YourApp</h3>
-      <p>Send and receive messages without keeping your phone online. Use YourApp on up to 4 linked devices.</p>
+      <p>Send and receive messages without keeping your phone online.</p>
       <div class="encryption-note">🔒 End-to-end encrypted</div>
     </div>
 
     <div id="chat-view">
       <!-- Chat topbar -->
       <div id="chat-topbar">
-        <div id="ct-avatar" class="av0">?</div>
+        <!-- Avatar — click to show DP modal -->
+        <div id="ct-avatar" class="av0" onclick="openDpModal()" title="View profile photo">?</div>
         <div id="ct-info">
           <div id="ct-name">-</div>
           <div id="ct-status">-</div>
@@ -892,7 +940,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
           <button class="icon-btn" title="More options" id="more-btn" onclick="toggleMoreMenu(event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
-          <!-- Dropdown menu -->
           <div id="more-menu">
             <div class="more-item" id="mm-group-info" onclick="moreMenuGroupInfo()" style="display:none;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -926,7 +973,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 
       <!-- Group info panel -->
       <div id="group-info-panel">
-        <!-- Group photo + name row -->
         <div class="gi-photo-row">
           <div class="gi-photo-wrap" onclick="document.getElementById('group-photo-input').click()" title="Change group photo">
             <div class="gi-photo" id="gi-photo-display">👥</div>
@@ -941,10 +987,8 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
             <div class="gi-group-meta" id="gi-group-meta">0 participants</div>
           </div>
         </div>
-        <!-- Members list -->
         <div class="gi-label">Members</div>
         <div class="gi-members-list" id="group-members-list"></div>
-        <!-- Actions -->
         <div class="gi-actions">
           <button class="gi-btn gi-btn-add" onclick="openAddMembers()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
@@ -1018,7 +1062,8 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 </div>
 
 <!-- Image preview -->
-<div id="img-preview-overlay" onclick="this.classList.remove('show')">
+<div id="img-preview-overlay" onclick="closeImgPreview(event)">
+  <button id="img-preview-close" onclick="document.getElementById('img-preview-overlay').classList.remove('show')">✕</button>
   <img id="preview-img" src="" alt="preview"/>
 </div>
 
@@ -1113,7 +1158,7 @@ let currentChat  = null;
 let currentGroup = null;
 let activeTab    = 'all';
 let lastSeenMap  = {};
-let unreadMap    = {};
+let unreadMap    = {};   // { email: count }
 let typingTimer  = null;
 
 let ctxMsgId   = null;
@@ -1159,6 +1204,23 @@ function getDisplayName(email) {
   return (p && p.name) ? p.name : email.split('@')[0];
 }
 
+/* ── Smart date label: Today / Yesterday / DD Mon YYYY ── */
+function formatDayLabel(isoStr) {
+  var d   = new Date(isoStr);
+  var now = new Date();
+  var dStr  = d.toDateString();
+  var todayStr = now.toDateString();
+  var yest  = new Date(now); yest.setDate(now.getDate() - 1);
+  if (dStr === todayStr)           return 'Today';
+  if (dStr === yest.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function getDateKey(isoStr) {
+  var d = new Date(isoStr);
+  return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+}
+
 function formatLastSeen(iso) {
   if (!iso) return 'last seen recently';
   const d = new Date(iso), now = new Date();
@@ -1176,6 +1238,45 @@ function escHtml(t) {
 function scrollBottom() {
   const a = document.getElementById('messages-area');
   a.scrollTop = a.scrollHeight;
+}
+
+// ── DP Modal (WhatsApp-style profile photo viewer) ──
+function openDpModal() {
+  if (currentGroup) {
+    // Show group photo
+    var wrap = document.getElementById('dp-img-wrap');
+    var photo = currentGroup.photo_url;
+    if (photo) {
+      wrap.innerHTML = '<img src="' + photo + '" alt="group"/>';
+    } else {
+      wrap.innerHTML = '👥';
+    }
+    wrap.style.background = photo ? 'transparent' : 'linear-gradient(135deg,#25d366,#128c7e)';
+    document.getElementById('dp-name').textContent = currentGroup.name;
+    document.getElementById('dp-email').textContent = (currentGroup.members||[]).length + ' participants';
+  } else if (currentChat) {
+    var p = profilesMap[currentChat];
+    var wrap = document.getElementById('dp-img-wrap');
+    if (p && p.avatar_url) {
+      wrap.innerHTML = '<img src="' + p.avatar_url + '" alt="dp"/>';
+      wrap.style.background = 'transparent';
+    } else {
+      var color = p ? (colorMap[p.avatar_color] || colorMap['av0']) : colorMap[avClass(currentChat)];
+      var letter = (p && p.name) ? p.name[0].toUpperCase() : currentChat[0].toUpperCase();
+      wrap.innerHTML = letter;
+      wrap.style.background = color;
+      wrap.style.fontSize = '100px';
+    }
+    document.getElementById('dp-name').textContent = getDisplayName(currentChat);
+    document.getElementById('dp-email').textContent = currentChat;
+  } else return;
+  document.getElementById('dp-modal').classList.add('show');
+}
+
+function closeDpModal(e) {
+  if (e.target === document.getElementById('dp-modal')) {
+    document.getElementById('dp-modal').classList.remove('show');
+  }
 }
 
 // Socket events
@@ -1212,6 +1313,8 @@ socket.on('private-message', function(data) {
   } else {
     unreadMap[data.from] = (unreadMap[data.from] || 0) + 1;
     renderUsers();
+    // Browser notification
+    showDesktopNotif(data.from, data.message, data.type);
   }
 });
 socket.on('group-message', function(data) {
@@ -1226,6 +1329,27 @@ socket.on('message-deleted', function(data) {
     else if (data.deletedFor === myEmail) el.remove();
   }
 });
+
+/* ── Desktop / Browser Notification ── */
+function showDesktopNotif(fromEmail, text, type) {
+  var key = currentGroup ? 'g_' + currentGroup.id : fromEmail;
+  if (mutedChats[key]) return; // muted
+
+  var title = getDisplayName(fromEmail);
+  var body  = type === 'image' ? '📷 Image' : type === 'audio' ? '🎤 Voice message' : type === 'video' ? '🎬 Video' : (text || '');
+
+  // Show in-app toast badge
+  showToast('💬 ' + title + ': ' + (body.length > 30 ? body.slice(0,30)+'…' : body));
+
+  // Browser notification
+  if ('Notification' in window && Notification.permission === 'granted') {
+    try {
+      new Notification('YourApp — ' + title, { body: body, icon: '/favicon.ico', tag: fromEmail });
+    } catch(e) {}
+  } else if ('Notification' in window && Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+}
 
 // Load profiles
 async function loadProfiles() {
@@ -1292,7 +1416,7 @@ function renderUsers() {
         '</div>' +
         '<div class="card-bottom">' +
           '<div class="card-sub ' + (isOnline ? 'online-text' : '') + '">' +
-            (isOnline ? 'online' : formatLastSeen(lastSeenMap[email])) +
+            (isOnline ? '● online' : formatLastSeen(lastSeenMap[email])) +
           '</div>' +
           '<div class="unread-badge" style="' + (unread > 0 ? 'display:flex' : 'display:none') + '">' + unread + '</div>' +
         '</div>' +
@@ -1313,8 +1437,15 @@ function renderGroups() {
     const memberCount = (g.members || []).length;
     const card = document.createElement('div');
     card.className = 'group-card' + (currentGroup && currentGroup.id === g.id ? ' active' : '');
+    // Group avatar — show photo if exists
+    var groupAvHtml;
+    if (g.photo_url) {
+      groupAvHtml = '<div class="group-avatar"><img src="' + g.photo_url + '" alt="group"/></div>';
+    } else {
+      groupAvHtml = '<div class="group-avatar">👥</div>';
+    }
     card.innerHTML =
-      '<div class="group-avatar">👥</div>' +
+      groupAvHtml +
       '<div class="card-info">' +
         '<div class="card-top">' +
           '<div class="card-name">' + escHtml(g.name) + '</div>' +
@@ -1366,15 +1497,15 @@ async function openChat(email) {
   area.innerHTML = '';
 
   if (data.success && data.messages.length > 0) {
-    var lastDay = '';
+    var lastDayKey = '';
     data.messages.forEach(function(m) {
-      var day = new Date(m.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
-      if (day !== lastDay) {
+      var dayKey   = getDateKey(m.created_at);
+      if (dayKey !== lastDayKey) {
         var lbl = document.createElement('div');
         lbl.className = 'day-label';
-        lbl.textContent = day === new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) ? 'Today' : day;
+        lbl.textContent = formatDayLabel(m.created_at);
         area.appendChild(lbl);
-        lastDay = day;
+        lastDayKey = dayKey;
       }
       appendBubble(m.id, m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name, m.deleted_for_everyone, m.deleted_for);
     });
@@ -1413,8 +1544,14 @@ async function openGroupChat(group) {
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('chat-view').style.display   = 'flex';
   var ctAv = document.getElementById('ct-avatar');
-  ctAv.textContent = '👥';
-  ctAv.style.background = 'linear-gradient(135deg,#25d366,#128c7e)';
+  // Instantly show group photo if exists
+  if (group.photo_url) {
+    ctAv.innerHTML = '<img src="' + group.photo_url + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
+    ctAv.style.background = 'transparent';
+  } else {
+    ctAv.textContent = '👥';
+    ctAv.style.background = 'linear-gradient(135deg,#25d366,#128c7e)';
+  }
   ctAv.style.borderRadius = '50%';
   document.getElementById('ct-name').textContent   = group.name;
   document.getElementById('ct-status').textContent = 'Tap here for group info';
@@ -1428,7 +1565,16 @@ async function openGroupChat(group) {
   var area   = document.getElementById('messages-area');
   area.innerHTML = '';
   if (data.success && data.messages.length > 0) {
+    var lastDayKey = '';
     data.messages.forEach(function(m) {
+      var dayKey = getDateKey(m.created_at);
+      if (dayKey !== lastDayKey) {
+        var lbl = document.createElement('div');
+        lbl.className = 'day-label';
+        lbl.textContent = formatDayLabel(m.created_at);
+        area.appendChild(lbl);
+        lastDayKey = dayKey;
+      }
       appendGroupBubble(m.id, m.sender, m.message, m.sender === myEmail ? 'me' : 'them', m.created_at, m.type, m.file_url, m.file_name, m.deleted_for_everyone);
     });
   } else {
@@ -1443,6 +1589,20 @@ function appendBubble(id, text, who, time, type, fileUrl, fileName, deletedForEv
   var area  = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
+
+  // Day label for new message (live)
+  if (time) {
+    var dayKey = getDateKey(time);
+    var lastLbl = area.querySelector('.day-label:last-of-type');
+    var lastKey = lastLbl ? lastLbl.dataset.dayKey : '';
+    if (dayKey !== lastKey) {
+      var lbl = document.createElement('div');
+      lbl.className = 'day-label';
+      lbl.dataset.dayKey = dayKey;
+      lbl.textContent = formatDayLabel(time);
+      area.appendChild(lbl);
+    }
+  }
 
   var group = document.createElement('div');
   group.className = 'msg-group ' + who;
@@ -1480,6 +1640,20 @@ function appendGroupBubble(id, sender, text, who, time, type, fileUrl, fileName,
   var area  = document.getElementById('messages-area');
   var noMsg = area.querySelector('.no-msgs');
   if (noMsg) noMsg.remove();
+
+  // Day label for new group message (live)
+  if (time) {
+    var dayKey = getDateKey(time);
+    var lastLbl = area.querySelector('.day-label:last-of-type');
+    var lastKey = lastLbl ? lastLbl.dataset.dayKey : '';
+    if (dayKey !== lastKey) {
+      var lbl = document.createElement('div');
+      lbl.className = 'day-label';
+      lbl.dataset.dayKey = dayKey;
+      lbl.textContent = formatDayLabel(time);
+      area.appendChild(lbl);
+    }
+  }
 
   var group = document.createElement('div');
   group.className = 'msg-group ' + who;
@@ -1603,6 +1777,11 @@ function fmtSec(s) {
 function previewImg(src) {
   document.getElementById('preview-img').src = src;
   document.getElementById('img-preview-overlay').classList.add('show');
+}
+
+function closeImgPreview(e) {
+  if (e.target === document.getElementById('img-preview-overlay'))
+    document.getElementById('img-preview-overlay').classList.remove('show');
 }
 
 // Context menu
@@ -1739,7 +1918,7 @@ document.addEventListener('click', function(e) {
     document.getElementById('attach-menu').classList.remove('show');
 });
 
-// Voice recording — Click mic to START, green send to STOP & SEND, red X to CANCEL
+// Voice recording
 var mediaRecorder = null, audioChunks = [], recTimerInterval = null, recSeconds = 0;
 var audioCtx = null, analyser = null, animFrameId = null, recStream = null, isRecording = false;
 
@@ -1759,7 +1938,6 @@ function startRecording() {
     document.getElementById('voice-btn').style.display = 'none';
     document.getElementById('attach-btn').style.display = 'none';
     document.getElementById('rec-bar').classList.add('show');
-    // Set canvas width to match available space
     var canvas = document.getElementById('rec-wave');
     canvas.width = Math.max(80, canvas.offsetWidth || 120);
     updateRecTimer();
@@ -1907,10 +2085,8 @@ function openGroupInfo() {
 }
 
 async function loadGroupMembers() {
-  // Update name + meta in panel
   document.getElementById('gi-group-name').textContent = currentGroup.name;
 
-  // Show group photo if exists
   var photoEl = document.getElementById('gi-photo-display');
   if (currentGroup.photo_url) {
     photoEl.innerHTML = '<img src="' + currentGroup.photo_url + '" alt="group"/>';
@@ -1923,11 +2099,10 @@ async function loadGroupMembers() {
   var list = document.getElementById('group-members-list');
   list.innerHTML = '';
 
-  // Determine if I am admin
   var amIAdmin = currentGroup.created_by === myEmail;
 
   if (data.success) {
-    var members = data.members; // array of email strings or objects
+    var members = data.members;
     document.getElementById('gi-group-meta').textContent = members.length + ' participants';
 
     members.forEach(function(memberEmail) {
@@ -1938,7 +2113,6 @@ async function loadGroupMembers() {
       var row = document.createElement('div');
       row.className = 'gi-member-row';
 
-      // Avatar
       var p = profilesMap[email];
       var color = p ? (colorMap[p.avatar_color] || colorMap['av0']) : colorMap[avClass(email)];
       var letter = (p && p.name) ? p.name[0].toUpperCase() : email[0].toUpperCase();
@@ -1951,7 +2125,6 @@ async function loadGroupMembers() {
         avEl.textContent = letter;
       }
 
-      // Info
       var infoEl = document.createElement('div');
       infoEl.className = 'gi-member-info';
       var nameRow = document.createElement('div');
@@ -1972,7 +2145,6 @@ async function loadGroupMembers() {
       row.appendChild(avEl);
       row.appendChild(infoEl);
 
-      // Remove button — admin only, not for self
       if (amIAdmin && !isMe) {
         var removeBtn = document.createElement('button');
         removeBtn.className = 'gi-member-action';
@@ -2012,6 +2184,15 @@ async function removeMember(email) {
 async function uploadGroupPhoto(input) {
   var file = input.files[0];
   if (!file || !currentGroup) return;
+
+  // Instant local preview (no waiting for server)
+  var objectUrl = URL.createObjectURL(file);
+  var ctAv = document.getElementById('ct-avatar');
+  ctAv.innerHTML = '<img src="' + objectUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
+  ctAv.style.background = 'transparent';
+  document.getElementById('gi-photo-display').innerHTML = '<img src="' + objectUrl + '" alt="group"/>';
+  currentGroup.photo_url = objectUrl; // temp
+
   var formData = new FormData();
   formData.append('file', file);
   formData.append('groupId', currentGroup.id);
@@ -2019,31 +2200,17 @@ async function uploadGroupPhoto(input) {
     var res = await fetch(SERVER + '/upload', { method: 'POST', body: formData });
     var data = await res.json();
     if (data.success) {
-      // Update group photo via API
       var res2 = await fetch(SERVER + '/groups/' + currentGroup.id + '/photo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ photo_url: data.fileUrl, email: myEmail })
       });
-      var data2 = await res2.json();
-      if (data2.success) {
-        currentGroup.photo_url = data.fileUrl;
-        // Update chat topbar avatar
-        var ctAv = document.getElementById('ct-avatar');
-        ctAv.innerHTML = '<img src="' + data.fileUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
-        // Update sidebar group card
-        loadGroups();
-        // Refresh panel photo
-        document.getElementById('gi-photo-display').innerHTML = '<img src="' + data.fileUrl + '" alt="group"/>';
-      } else {
-        // Still update locally even if backend doesn't support it yet
-        currentGroup.photo_url = data.fileUrl;
-        document.getElementById('gi-photo-display').innerHTML = '<img src="' + data.fileUrl + '" alt="group"/>';
-        var ctAv2 = document.getElementById('ct-avatar');
-        ctAv2.innerHTML = '<img src="' + data.fileUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
-      }
-    } else {
-      alert('Photo upload failed!');
+      // Replace temp objectUrl with real URL
+      currentGroup.photo_url = data.fileUrl;
+      ctAv.innerHTML = '<img src="' + data.fileUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt=""/>';
+      document.getElementById('gi-photo-display').innerHTML = '<img src="' + data.fileUrl + '" alt="group"/>';
+      URL.revokeObjectURL(objectUrl);
+      loadGroups(); // refresh sidebar
     }
   } catch(e) {
     alert('Upload error: ' + e.message);
@@ -2107,12 +2274,17 @@ function showGroupActions(show) {
   if (!show) document.getElementById('group-info-panel').style.display = 'none';
 }
 
-// Click topbar to open group info
 document.getElementById('ct-info').addEventListener('click', function() {
   if (currentGroup) openGroupInfo();
 });
 
-// ── More menu (3-dot) ──
+// Click ct-avatar: DM → open DP modal; Group → open group info
+document.getElementById('ct-avatar').addEventListener('click', function() {
+  if (currentGroup) openGroupInfo();
+  else if (currentChat) openDpModal();
+});
+
+// More menu
 var mutedChats = {};
 
 function toggleMoreMenu(e) {
@@ -2123,13 +2295,11 @@ function toggleMoreMenu(e) {
 
 function updateMoreMenu() {
   var isGroup = !!currentGroup;
-  // Show/hide group-only items
   ['mm-group-info','mm-add-members','mm-change-photo','mm-div1','mm-leave-group','mm-div2'].forEach(function(id) {
     document.getElementById(id).style.display = isGroup ? 'flex' : 'none';
   });
   document.getElementById('mm-div1').style.display = isGroup ? 'block' : 'none';
   document.getElementById('mm-div2').style.display = isGroup ? 'block' : 'none';
-  // Mute label
   var key = currentGroup ? 'g_' + currentGroup.id : currentChat;
   document.getElementById('mm-mute-label').textContent = mutedChats[key] ? 'Unmute Notifications' : 'Mute Notifications';
 }
@@ -2167,9 +2337,7 @@ function moreMenuMute() {
   document.getElementById('more-menu').classList.remove('show');
   var key = currentGroup ? 'g_' + currentGroup.id : currentChat;
   mutedChats[key] = !mutedChats[key];
-  var label = mutedChats[key] ? 'Muted 🔇' : 'Unmuted 🔔';
-  // Show toast
-  showToast(label);
+  showToast(mutedChats[key] ? 'Muted 🔇' : 'Unmuted 🔔');
   updateMoreMenu();
 }
 
@@ -2178,16 +2346,21 @@ function showToast(msg) {
   if (!t) {
     t = document.createElement('div');
     t.id = 'toast';
-    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;border:1px solid var(--border2);box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.3s;';
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface2);color:var(--text);padding:8px 20px;border-radius:20px;font-size:13px;z-index:9999;border:1px solid var(--border2);box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.3s;white-space:nowrap;';
     document.body.appendChild(t);
   }
   t.textContent = msg;
   t.style.opacity = '1';
   clearTimeout(t._timer);
-  t._timer = setTimeout(function() { t.style.opacity = '0'; }, 2000);
+  t._timer = setTimeout(function() { t.style.opacity = '0'; }, 2500);
 }
 
 function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+// Request notification permission on load
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
 
 (async function init() {
   await loadProfiles();
