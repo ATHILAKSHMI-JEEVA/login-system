@@ -495,7 +495,9 @@ app.get('/admin', (req, res) => {
 
 // ── Admin auth middleware ──
 function requireAdmin(req, res, next) {
-  const token = req.headers['authorization'];
+  // Support both "Bearer <token>" and raw token formats
+  const authHeader = req.headers['authorization'] || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
   if (!token) return res.status(401).json({ success: false, message: 'No token' });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysupersecretkey');
@@ -512,7 +514,6 @@ function requireAdmin(req, res, next) {
 }
 
 // ── Stats ──
-
 app.get('/admin/stats/users', requireAdmin, (req, res) => {
   db.query('SELECT COUNT(*) as count FROM users', (err, rows) => {
     res.json({ count: err ? 0 : rows[0].count });
@@ -538,7 +539,6 @@ app.get('/admin/stats/issues', requireAdmin, (req, res) => {
 });
 
 // ── Admin Groups ──
-
 app.get('/admin/groups', requireAdmin, (req, res) => {
   const sql = `
     SELECT g.*, COUNT(gm.id) as member_count
@@ -562,7 +562,6 @@ app.post('/admin/groups', requireAdmin, (req, res) => {
     [name, creator],
     (err, result) => {
       if (err) return res.json({ success: false, message: err.message });
-      // Auto-add admin as first member
       db.query('INSERT INTO group_members (group_id, email) VALUES (?, ?)', [result.insertId, creator], () => {});
       res.json({ success: true, group_id: result.insertId });
     }
@@ -584,7 +583,6 @@ app.delete('/admin/groups/:id', requireAdmin, (req, res) => {
 });
 
 // ── Admin Members ──
-
 app.get('/admin/groups/:id/members', requireAdmin, (req, res) => {
   const sql = `
     SELECT gm.*, g.name as group_name
@@ -633,7 +631,6 @@ app.delete('/admin/members/:id', requireAdmin, (req, res) => {
 });
 
 // ── Admin Messages / Announcements ──
-
 app.get('/admin/messages', requireAdmin, (req, res) => {
   const sql = `
     SELECT gm.*, g.name as group_name
@@ -671,7 +668,6 @@ app.post('/admin/messages', requireAdmin, (req, res) => {
     [group_id, sender, message, type || 'text'],
     (err, result) => {
       if (err) return res.json({ success: false, message: err.message });
-      // Emit via socket so members see it live
       io.emit('group-message', {
         id: result.insertId,
         groupId: group_id,
@@ -692,7 +688,6 @@ app.delete('/admin/messages/:id', requireAdmin, (req, res) => {
   });
 });
 
-// PATCH — mark issue as resolved (type → 'update')
 app.patch('/admin/messages/:id/resolve', requireAdmin, (req, res) => {
   db.query(
     "UPDATE group_messages SET type = 'update' WHERE id = ?",
@@ -705,7 +700,6 @@ app.patch('/admin/messages/:id/resolve', requireAdmin, (req, res) => {
 });
 
 // ── Admin Users ──
-
 app.get('/admin/users', requireAdmin, (req, res) => {
   db.query('SELECT id, email, is_admin FROM users ORDER BY id DESC', (err, rows) => {
     if (err) return res.json({ success: false, message: err.message });
@@ -724,6 +718,19 @@ app.delete('/admin/users/:id', requireAdmin, (req, res) => {
   db.query('DELETE FROM users WHERE id = ?', [req.params.id], (err) => {
     if (err) return res.json({ success: false, message: err.message });
     res.json({ success: true });
+  });
+});
+
+// ── NEW: Make yourself admin by secret key (one-time setup) ──
+// Visit: POST /make-admin  body: { email, secret: "WARD_ADMIN_SECRET" }
+app.post('/make-admin', (req, res) => {
+  const { email, secret } = req.body;
+  const ADMIN_SECRET = process.env.ADMIN_SECRET || 'WARD_ADMIN_2024';
+  if (secret !== ADMIN_SECRET) return res.status(403).json({ success: false, message: 'Wrong secret' });
+  db.query('UPDATE users SET is_admin = 1 WHERE email = ?', [email], (err, result) => {
+    if (err) return res.json({ success: false, message: err.message });
+    if (result.affectedRows === 0) return res.json({ success: false, message: 'User not found' });
+    res.json({ success: true, message: `✅ ${email} is now an admin!` });
   });
 });
 
