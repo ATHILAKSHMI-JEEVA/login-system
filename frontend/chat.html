@@ -647,17 +647,18 @@ function showDesktopNotif(fromEmail,text,type) {
   else if('Notification'in window&&Notification.permission!=='denied') Notification.requestPermission();
 }
 
-// ══════════════════════════════════════════════
-// FIX 1: openDpModal — user dp correctly shows,
-//         group gets fresh member count from API
-// ══════════════════════════════════════════════
 function openDpModal() {
   if(currentGroup){
     var wrap=document.getElementById('dp-img-wrap');
-    if(currentGroup.photo_url){wrap.innerHTML='<img src="'+currentGroup.photo_url+'" alt="group"/>';wrap.style.background='transparent';}
-    else{wrap.innerHTML='👥';wrap.style.background='linear-gradient(135deg,#25d366,#128c7e)';}
+    wrap.style.fontSize='';
+    if(currentGroup.photo_url){
+      wrap.innerHTML='<img src="'+currentGroup.photo_url+'" alt="group" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+      wrap.style.background='transparent';
+    } else {
+      wrap.innerHTML='<span style="font-size:100px;line-height:1;">👥</span>';
+      wrap.style.background='linear-gradient(135deg,#25d366,#128c7e)';
+    }
     document.getElementById('dp-name').textContent=currentGroup.name;
-    // FIX 3: Fetch fresh member count from API instead of stale currentGroup.members
     document.getElementById('dp-email').textContent='Loading...';
     fetch(SERVER+'/groups/'+currentGroup.id+'/members')
       .then(function(r){return r.json();})
@@ -667,21 +668,36 @@ function openDpModal() {
         document.getElementById('dp-email').textContent=(currentGroup.members||[]).length+' participants';
       });
   } else if(currentChat){
-    var p=profilesMap[currentChat];
-    var wrap=document.getElementById('dp-img-wrap');
-    if(p&&p.avatar_url){wrap.innerHTML='<img src="'+p.avatar_url+'" alt="dp"/>';wrap.style.background='transparent';}
-    else{
-      var color=p?(colorMap[p.avatar_color]||colorMap['av0']):colorMap[avClass(currentChat)];
-      var letter=(p&&p.name)?p.name[0].toUpperCase():currentChat[0].toUpperCase();
-      wrap.innerHTML=letter;
-      wrap.style.background=color;
-      wrap.style.fontSize='100px';
-    }
-    document.getElementById('dp-name').textContent=getDisplayName(currentChat);
-    document.getElementById('dp-email').textContent=currentChat;
+    // Fresh fetch from server so latest photo shows always
+    fetch(SERVER+'/profile/'+encodeURIComponent(currentChat))
+      .then(function(r){return r.json();})
+      .then(function(data){
+        if(data.success&&data.profile) profilesMap[currentChat]=data.profile;
+        _showUserDpModal(currentChat);
+      }).catch(function(){ _showUserDpModal(currentChat); });
+    return; // modal shown inside _showUserDpModal after fetch
   } else return;
   document.getElementById('dp-modal').classList.add('show');
 }
+
+function _showUserDpModal(email){
+  var p=profilesMap[email];
+  var wrap=document.getElementById('dp-img-wrap');
+  wrap.style.fontSize='';
+  wrap.style.background='transparent';
+  if(p&&p.avatar_url){
+    wrap.innerHTML='<img src="'+p.avatar_url+'" alt="dp" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+  } else {
+    var color=p?(colorMap[p.avatar_color]||colorMap['av0']):colorMap[avClass(email)];
+    var letter=(p&&p.name)?p.name[0].toUpperCase():email[0].toUpperCase();
+    wrap.style.background=color;
+    wrap.innerHTML='<span style="font-size:100px;font-weight:700;color:#fff;line-height:1;user-select:none;">'+letter+'</span>';
+  }
+  document.getElementById('dp-name').textContent=getDisplayName(email);
+  document.getElementById('dp-email').textContent=email;
+  document.getElementById('dp-modal').classList.add('show');
+}
+
 function closeDpModal(e){if(e.target===document.getElementById('dp-modal'))document.getElementById('dp-modal').classList.remove('show');}
 
 async function loadProfiles(){try{var res=await fetch(SERVER+'/profiles');var data=await res.json();if(data.success)data.profiles.forEach(function(p){profilesMap[p.email]=p;});}catch(e){}}
