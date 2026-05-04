@@ -200,7 +200,7 @@ body::before {
 .btn-chat:hover { opacity: 0.88; transform: translateY(-1px); }
 
 /* get data button */
-.action-row { margin-top: 24px; display: flex; gap: 10px; }
+.action-row { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
 .btn {
   padding: 11px 20px; border-radius: 8px; border: none;
   font-family: var(--sans); font-size: 14px; font-weight: 500;
@@ -246,7 +246,6 @@ body::before {
     <span class="nav-brand-name">YourApp</span>
   </div>
   <div class="nav-right">
-    <!-- User chip — shows Google avatar + email -->
     <div class="user-chip">
       <div class="user-avatar" id="nav-avatar">?</div>
       <div class="user-info">
@@ -255,6 +254,10 @@ body::before {
       </div>
       <div class="status-dot"></div>
     </div>
+
+    <!-- ✅ ADMIN BUTTON — admin users-க்கு மட்டும் show ஆகும் -->
+    <a id="admin-btn" href="admin.html" style="display:none;padding:7px 14px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:8px;color:#a78bfa;font-size:13px;font-weight:600;text-decoration:none;">🏛️ Admin</a>
+
     <a href="chat.html" style="padding:7px 14px;background:rgba(6,214,160,0.12);border:1px solid rgba(6,214,160,0.3);border-radius:8px;color:#06d6a0;font-size:13px;font-weight:600;text-decoration:none;">💬 Chat</a>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
@@ -334,7 +337,7 @@ body::before {
         <span class="act-badge badge-ok">OK</span>
       </div>
 
-      <!-- Get Data -->
+      <!-- Buttons -->
       <div class="action-row">
         <button class="btn btn-primary" onclick="loadSecureData()">Get Secure Data</button>
         <a class="btn-chat" href="chat.html">💬 Open Chat</a>
@@ -381,6 +384,10 @@ body::before {
 </div>
 
 <script>
+const SERVER = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:5000"
+  : "https://login-system-backend-i3b8.onrender.com";
+
 // ── LOAD SESSION DATA ──
 function loadSession() {
   const token  = localStorage.getItem('token');
@@ -389,10 +396,9 @@ function loadSession() {
   const avatar = localStorage.getItem('avatar') || '';
   const method = localStorage.getItem('method') || 'Unknown';
 
-  // Guard: no token → redirect
   if (!token) { window.location.href = 'index.html'; return; }
 
-  // ── Navbar avatar ──
+  // Navbar avatar
   const navAvatar = document.getElementById('nav-avatar');
   if (avatar) {
     navAvatar.innerHTML = `<img src="${avatar}" alt="avatar" onerror="this.style.display='none'">`;
@@ -402,19 +408,19 @@ function loadSession() {
   document.getElementById('nav-name').textContent  = name;
   document.getElementById('nav-email').textContent = email;
 
-  // ── Stats ──
+  // Stats
   document.getElementById('stat-method').textContent = method === 'Google' ? '🔵 Google' : method === 'OTP' ? '📧 OTP' : '🔒 Password';
 
-  // ── Method badge ──
+  // Method badge
   const badge = document.getElementById('method-badge');
   if (method === 'Google')   { badge.className = 'method-badge method-google';   badge.textContent = '🔵 Google OAuth'; }
   if (method === 'OTP')      { badge.className = 'method-badge method-otp';      badge.textContent = '📧 Email OTP'; }
   if (method === 'Password') { badge.className = 'method-badge method-password'; badge.textContent = '🔒 Password'; }
 
-  // ── Greeting ──
+  // Greeting
   document.getElementById('greeting-sub').textContent = `Authenticated via ${method} · Welcome, ${name} · Session active`;
 
-  // ── Activity row ──
+  // Activity row
   const methodMap = {
     Google:   { icon: '🔵', title: 'Google OAuth verified', sub: `Account: ${email}` },
     OTP:      { icon: '📧', title: 'Email OTP verified',    sub: `6-digit code · ${email}` },
@@ -425,26 +431,38 @@ function loadSession() {
   document.getElementById('act-method-title').textContent = m.title;
   document.getElementById('act-method-sub').textContent   = m.sub;
 
-  // ── Info panel ──
+  // Info panel
   const methodLabel = { Google: 'Google OAuth', OTP: 'Email OTP', Password: 'Email + Password' };
   document.getElementById('info-method').textContent = methodLabel[method] || method;
   document.getElementById('info-email').textContent  = email;
 
-  // ── Login time ──
+  // Login time
   document.getElementById('login-time').textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-  // ── Toast ──
+  // Toast
   const toast = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = `Welcome back, ${name}! Logged in via ${method}.`;
   toast.style.display = 'flex';
   setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.style.display = 'none', 500); }, 4000);
+
+  // ✅ Admin button check — backend-ல admin-ஆ verify பண்ணு
+  checkAdminButton(token);
 }
 
-// ── GET SECURE DATA FROM BACKEND ──
-const SERVER = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:5000"
-  : "https://login-system-backend-i3b8.onrender.com";
+// ✅ Admin button — admin-ஆ இருந்தா மட்டும் show ஆகும்
+function checkAdminButton(token) {
+  fetch(SERVER + '/admin/stats/users', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  }).then(res => {
+    if (res.ok) {
+      document.getElementById('admin-btn').style.display = 'block';
+    }
+  }).catch(() => {
+    // Backend sleeping — quietly ignore
+  });
+}
 
+// ── GET SECURE DATA ──
 async function loadSecureData() {
   const token  = localStorage.getItem('token');
   const result = document.getElementById('data-result');
@@ -455,18 +473,14 @@ async function loadSecureData() {
     const data = await res.json();
     result.textContent = '✅ ' + data.message;
   } catch {
-    result.textContent = '❌ Backend not reachable on port 5000';
+    result.textContent = '❌ Backend not reachable';
     result.style.color = 'var(--danger)';
   }
 }
 
 // ── LOGOUT ──
 function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('email');
-  localStorage.removeItem('name');
-  localStorage.removeItem('avatar');
-  localStorage.removeItem('method');
+  localStorage.clear();
   window.location.href = 'index.html';
 }
 
