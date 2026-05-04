@@ -169,7 +169,6 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 #messages-area::-webkit-scrollbar{width:4px;}
 #messages-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 
-/* ── Day label — ONE per day, WhatsApp style ── */
 .day-label{
   align-self:center;
   font-size:11.5px;color:var(--text2);
@@ -408,7 +407,8 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
     </div>
     <div id="chat-view">
       <div id="chat-topbar">
-        <div id="ct-avatar" class="av0" onclick="openDpModal()" title="View profile photo">?</div>
+        <!-- FIX 1: Removed inline onclick="openDpModal()" — handled by addEventListener below -->
+        <div id="ct-avatar" class="av0" title="View profile photo">?</div>
         <div id="ct-info">
           <div id="ct-name">-</div>
           <div id="ct-status">-</div>
@@ -581,11 +581,6 @@ function buildAvatar(email,size,radius,circle) {
 
 function getDisplayName(email) { var p=profilesMap[email]; return (p&&p.name)?p.name:email.split('@')[0]; }
 
-// ══════════════════════════════════════════════
-//  DAY LABEL — WhatsApp style, ONE per day
-//  Key fix: use area.dataset.lastDayKey to track
-//  the last inserted label, so no duplicates ever
-// ══════════════════════════════════════════════
 function getDayKey(isoStr) {
   var d=new Date(isoStr);
   return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
@@ -603,7 +598,6 @@ function getDayLabel(isoStr) {
 function insertDayLabelIfNeeded(area, isoStr) {
   if (!isoStr) return;
   var key = getDayKey(isoStr);
-  // Compare with what we already inserted
   if (area.dataset.lastDayKey === key) return;
   area.dataset.lastDayKey = key;
   var lbl = document.createElement('div');
@@ -611,7 +605,6 @@ function insertDayLabelIfNeeded(area, isoStr) {
   lbl.textContent = getDayLabel(isoStr);
   area.appendChild(lbl);
 }
-// ══════════════════════════════════════════════
 
 function formatLastSeen(iso) {
   if (!iso) return 'last seen recently';
@@ -654,18 +647,36 @@ function showDesktopNotif(fromEmail,text,type) {
   else if('Notification'in window&&Notification.permission!=='denied') Notification.requestPermission();
 }
 
+// ══════════════════════════════════════════════
+// FIX 1: openDpModal — user dp correctly shows,
+//         group gets fresh member count from API
+// ══════════════════════════════════════════════
 function openDpModal() {
   if(currentGroup){
     var wrap=document.getElementById('dp-img-wrap');
     if(currentGroup.photo_url){wrap.innerHTML='<img src="'+currentGroup.photo_url+'" alt="group"/>';wrap.style.background='transparent';}
     else{wrap.innerHTML='👥';wrap.style.background='linear-gradient(135deg,#25d366,#128c7e)';}
     document.getElementById('dp-name').textContent=currentGroup.name;
-    document.getElementById('dp-email').textContent=(currentGroup.members||[]).length+' participants';
+    // FIX 3: Fetch fresh member count from API instead of stale currentGroup.members
+    document.getElementById('dp-email').textContent='Loading...';
+    fetch(SERVER+'/groups/'+currentGroup.id+'/members')
+      .then(function(r){return r.json();})
+      .then(function(d){
+        document.getElementById('dp-email').textContent=(d.success?d.members.length:(currentGroup.members||[]).length)+' participants';
+      }).catch(function(){
+        document.getElementById('dp-email').textContent=(currentGroup.members||[]).length+' participants';
+      });
   } else if(currentChat){
     var p=profilesMap[currentChat];
     var wrap=document.getElementById('dp-img-wrap');
     if(p&&p.avatar_url){wrap.innerHTML='<img src="'+p.avatar_url+'" alt="dp"/>';wrap.style.background='transparent';}
-    else{var color=p?(colorMap[p.avatar_color]||colorMap['av0']):colorMap[avClass(currentChat)];var letter=(p&&p.name)?p.name[0].toUpperCase():currentChat[0].toUpperCase();wrap.innerHTML=letter;wrap.style.background=color;wrap.style.fontSize='100px';}
+    else{
+      var color=p?(colorMap[p.avatar_color]||colorMap['av0']):colorMap[avClass(currentChat)];
+      var letter=(p&&p.name)?p.name[0].toUpperCase():currentChat[0].toUpperCase();
+      wrap.innerHTML=letter;
+      wrap.style.background=color;
+      wrap.style.fontSize='100px';
+    }
     document.getElementById('dp-name').textContent=getDisplayName(currentChat);
     document.getElementById('dp-email').textContent=currentChat;
   } else return;
@@ -731,7 +742,7 @@ async function openChat(email){
   const data=await res.json();
   const area=document.getElementById('messages-area');
   area.innerHTML='';
-  area.dataset.lastDayKey=''; // RESET day key tracker
+  area.dataset.lastDayKey='';
   if(data.success&&data.messages.length>0){
     data.messages.forEach(function(m){
       appendBubble(m.id,m.message,m.sender===myEmail?'me':'them',m.created_at,m.type,m.file_url,m.file_name,m.deleted_for_everyone,m.deleted_for);
@@ -772,7 +783,7 @@ async function openGroupChat(group){
   const data=await res.json();
   var area=document.getElementById('messages-area');
   area.innerHTML='';
-  area.dataset.lastDayKey=''; // RESET day key tracker
+  area.dataset.lastDayKey='';
   if(data.success&&data.messages.length>0){
     data.messages.forEach(function(m){
       appendGroupBubble(m.id,m.sender,m.message,m.sender===myEmail?'me':'them',m.created_at,m.type,m.file_url,m.file_name,m.deleted_for_everyone);
@@ -783,15 +794,11 @@ async function openGroupChat(group){
   scrollBottom();
 }
 
-// ── Append bubble with fixed day label ──
 function appendBubble(id,text,who,time,type,fileUrl,fileName,deletedForEveryone,deletedFor){
   type=type||'text';
   var area=document.getElementById('messages-area');
   var noMsg=area.querySelector('.no-msgs'); if(noMsg) noMsg.remove();
-
-  // Insert day label only if date changed
   insertDayLabelIfNeeded(area, time);
-
   var group=document.createElement('div');
   group.className='msg-group '+who;
   if(id) group.dataset.msgId=id;
@@ -813,10 +820,7 @@ function appendGroupBubble(id,sender,text,who,time,type,fileUrl,fileName,deleted
   type=type||'text';
   var area=document.getElementById('messages-area');
   var noMsg=area.querySelector('.no-msgs'); if(noMsg) noMsg.remove();
-
-  // Insert day label only if date changed
   insertDayLabelIfNeeded(area, time);
-
   var group=document.createElement('div');
   group.className='msg-group '+who;
   if(id) group.dataset.msgId=id;
@@ -1042,8 +1046,21 @@ async function addMembers(){
 }
 
 function showGroupActions(show){document.getElementById('group-actions').style.display=show?'flex':'none';if(!show)document.getElementById('group-info-panel').style.display='none';}
-document.getElementById('ct-info').addEventListener('click',function(){if(currentGroup)openGroupInfo();});
-document.getElementById('ct-avatar').addEventListener('click',function(){if(currentGroup)openGroupInfo();else if(currentChat)openDpModal();});
+
+// ══════════════════════════════════════════════
+// FIX 1 (cont): ct-info click — group opens info,
+//               DM opens dp modal (no conflict)
+// FIX 1 (cont): ct-avatar click — same logic,
+//               inline onclick removed from HTML
+// ══════════════════════════════════════════════
+document.getElementById('ct-info').addEventListener('click',function(){
+  if(currentGroup) openGroupInfo();
+  else if(currentChat) openDpModal();
+});
+document.getElementById('ct-avatar').addEventListener('click',function(){
+  if(currentGroup) openGroupInfo();
+  else if(currentChat) openDpModal();
+});
 
 var mutedChats={};
 function toggleMoreMenu(e){e.stopPropagation();document.getElementById('more-menu').classList.toggle('show');}
@@ -1059,7 +1076,21 @@ function moreMenuGroupInfo(){document.getElementById('more-menu').classList.remo
 function moreMenuAddMembers(){document.getElementById('more-menu').classList.remove('show');openAddMembers();}
 function moreMenuChangePhoto(){document.getElementById('more-menu').classList.remove('show');document.getElementById('group-photo-input').click();}
 function moreMenuLeave(){document.getElementById('more-menu').classList.remove('show');leaveGroup();}
-function moreMenuClearChat(){document.getElementById('more-menu').classList.remove('show');var name=currentGroup?currentGroup.name:getDisplayName(currentChat);if(!confirm('Clear all messages in "'+name+'"? This only clears on your device.'))return;document.getElementById('messages-area').innerHTML='<div class="no-msgs"><div class="no-msgs-icon">🧹</div><span>Chat cleared</span></div>';}
+
+// ══════════════════════════════════════════════
+// FIX 2: Clear chat — properly clears all msgs
+//         and resets day-label tracker
+// ══════════════════════════════════════════════
+function moreMenuClearChat(){
+  document.getElementById('more-menu').classList.remove('show');
+  var name=currentGroup?currentGroup.name:getDisplayName(currentChat);
+  if(!confirm('Clear all messages in "'+name+'"? This only clears on your device.')) return;
+  var area=document.getElementById('messages-area');
+  area.innerHTML='';
+  area.dataset.lastDayKey='';
+  area.innerHTML='<div class="no-msgs"><div class="no-msgs-icon">🧹</div><span>Chat cleared</span></div>';
+}
+
 function moreMenuMute(){document.getElementById('more-menu').classList.remove('show');var key=currentGroup?'g_'+currentGroup.id:currentChat;mutedChats[key]=!mutedChats[key];showToast(mutedChats[key]?'Muted 🔇':'Unmuted 🔔');updateMoreMenu();}
 
 function showToast(msg){
