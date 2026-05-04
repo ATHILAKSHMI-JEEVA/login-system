@@ -27,7 +27,7 @@ const io     = new Server(server, { cors: { origin: "*" } });
 app.use(express.json());
 app.use(cors({
   origin: ["http://localhost:5500", "http://127.0.0.1:5500", "https://login-system-99cr.vercel.app", "https://login-system-backend-i3b8.onrender.com"],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
 }));
 
@@ -94,7 +94,6 @@ db.query(`
   )
 `, err => { if (err) console.log('❌ Group messages table error:', err.message); else console.log('✅ Group messages table ready'); });
 
-// ── messages table: add deleted_for_everyone + deleted_for columns if missing ──
 db.query(`
   CREATE TABLE IF NOT EXISTS messages (
     id                   INT AUTO_INCREMENT PRIMARY KEY,
@@ -117,7 +116,8 @@ db.query(`
 const alterQueries = [
   `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
   `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for TEXT DEFAULT NULL`,
-  `ALTER TABLE group_messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`
+  `ALTER TABLE group_messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin TINYINT(1) DEFAULT 0`
 ];
 alterQueries.forEach(q => db.query(q, () => {}));
 
@@ -156,7 +156,7 @@ app.post("/login", (req, res) => {
     const match = await bcrypt.compare(password, result[0].password);
     if (!match) return res.json({ message: "Wrong password" });
     const token = jwt.sign({ id: result[0].id, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
-    res.json({ message: "Login success", token });
+    res.json({ message: "Login success", token, is_admin: result[0].is_admin === 1 });
   });
 });
 
@@ -169,17 +169,17 @@ app.post("/firebase-login", async (req, res) => {
     const { email, name, picture } = decoded;
     db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
       if (err) return res.status(500).json({ success: false, message: "DB error" });
-      const issueToken = (userId) => {
+      const issueToken = (userId, isAdmin) => {
         const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
-        res.json({ success: true, token, email, name, avatar: picture });
+        res.json({ success: true, token, email, name, avatar: picture, is_admin: isAdmin === 1 });
       };
       if (result.length === 0) {
         db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, "OAUTH_USER"], (err2, r) => {
           if (err2) return res.json({ success: false, message: "Could not create user" });
-          issueToken(r.insertId);
+          issueToken(r.insertId, 0);
         });
       } else {
-        issueToken(result[0].id);
+        issueToken(result[0].id, result[0].is_admin);
       }
     });
   } catch (err) {
@@ -219,14 +219,14 @@ app.post("/verify-otp", (req, res) => {
   if (stored.otp !== otp) return res.json({ success: false, message: "Wrong OTP." });
   otpStore.delete(email);
   db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
-    const done = (userId) => {
+    const done = (userId, isAdmin) => {
       const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "mysupersecretkey", { expiresIn: "7d" });
-      res.json({ success: true, message: "OTP Verified", token });
+      res.json({ success: true, message: "OTP Verified", token, is_admin: isAdmin === 1 });
     };
     if (!result || result.length === 0) {
-      db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, "OTP_USER"], (e, r) => done(r.insertId));
+      db.query("INSERT INTO users (email, password) VALUES (?, ?)", [email, "OTP_USER"], (e, r) => done(r.insertId, 0));
     } else {
-      done(result[0].id);
+      done(result[0].id, result[0].is_admin);
     }
   });
 });
@@ -269,12 +269,11 @@ app.get("/messages/:user1/:user2", (req, res) => {
       [user1, user2, user2, user1],
       (err, result) => {
         if (err) return res.json({ success: false });
-        // Filter out messages deleted for this user (user1 is the requester)
         const filtered = result.filter(m => {
-          if (m.deleted_for_everyone) return true; // show as deleted
+          if (m.deleted_for_everyone) return true;
           if (m.deleted_for) {
             const list = m.deleted_for.split(',');
-            if (list.includes(user1)) return false; // hide completely
+            if (list.includes(user1)) return false;
           }
           return true;
         });
@@ -311,19 +310,14 @@ app.get("/home", (req, res) => {
 //  DELETE MESSAGES
 // ═══════════════════════════════════════════════
 
-// ── DELETE FOR ME (private message) ──
 app.post("/messages/:id/delete-for-me", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.status(401).json({ success: false });
-  try {
-    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
-  } catch { return res.status(401).json({ success: false }); }
-
+  try { jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey"); }
+  catch { return res.status(401).json({ success: false }); }
   const { id } = req.params;
   const { email } = req.body;
   if (!email) return res.json({ success: false, message: 'Email required' });
-
-  // Append this user to deleted_for list
   db.query('SELECT deleted_for FROM messages WHERE id = ?', [id], (err, result) => {
     if (err || !result.length) return res.json({ success: false, message: 'Message not found' });
     const existing = result[0].deleted_for || '';
@@ -336,22 +330,16 @@ app.post("/messages/:id/delete-for-me", (req, res) => {
   });
 });
 
-// ── DELETE FOR EVERYONE (private message) ──
 app.post("/messages/:id/delete-for-everyone", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.status(401).json({ success: false });
-  try {
-    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
-  } catch { return res.status(401).json({ success: false }); }
-
+  try { jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey"); }
+  catch { return res.status(401).json({ success: false }); }
   const { id } = req.params;
   const { email } = req.body;
-
-  // Only the sender can delete for everyone
   db.query('SELECT sender FROM messages WHERE id = ?', [id], (err, result) => {
     if (err || !result.length) return res.json({ success: false, message: 'Message not found' });
     if (result[0].sender !== email) return res.json({ success: false, message: 'Only sender can delete for everyone' });
-
     db.query('UPDATE messages SET deleted_for_everyone = 1 WHERE id = ?', [id], (err2) => {
       if (err2) return res.json({ success: false, message: err2.message });
       res.json({ success: true });
@@ -359,21 +347,16 @@ app.post("/messages/:id/delete-for-everyone", (req, res) => {
   });
 });
 
-// ── DELETE FOR EVERYONE (group message) ──
 app.post("/group-messages/:id/delete", (req, res) => {
   const token = req.headers["authorization"];
   if (!token) return res.status(401).json({ success: false });
-  try {
-    jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey");
-  } catch { return res.status(401).json({ success: false }); }
-
+  try { jwt.verify(token, process.env.JWT_SECRET || "mysupersecretkey"); }
+  catch { return res.status(401).json({ success: false }); }
   const { id } = req.params;
   const { email } = req.body;
-
   db.query('SELECT sender FROM group_messages WHERE id = ?', [id], (err, result) => {
     if (err || !result.length) return res.json({ success: false, message: 'Message not found' });
     if (result[0].sender !== email) return res.json({ success: false, message: 'Only sender can delete for everyone' });
-
     db.query('UPDATE group_messages SET deleted_for_everyone = 1 WHERE id = ?', [id], (err2) => {
       if (err2) return res.json({ success: false, message: err2.message });
       res.json({ success: true });
@@ -388,9 +371,9 @@ app.post("/groups", (req, res) => {
   db.query('INSERT INTO groups_table (name, created_by) VALUES (?, ?)', [name, created_by], (err, result) => {
     if (err) return res.json({ success: false, message: err.message });
     const groupId = result.insertId;
-    const allMembers = [...new Set([created_by, ...members])];
+    const allMembers = [...new Set([created_by, ...(members || [])])];
     const values = allMembers.map(email => [groupId, email]);
-    db.query('INSERT INTO group_members (group_id, email) VALUES ?', [values], (err2) => {
+    db.query('INSERT IGNORE INTO group_members (group_id, email) VALUES ?', [values], (err2) => {
       if (err2) return res.json({ success: false, message: err2.message });
       res.json({ success: true, groupId, name });
     });
@@ -457,12 +440,12 @@ app.post("/groups/:groupId/leave", (req, res) => {
 // ─── USER PROFILE TABLE ───
 db.query(`
   CREATE TABLE IF NOT EXISTS user_profiles (
-    email      VARCHAR(255) PRIMARY KEY,
-    name       VARCHAR(255),
-    bio        TEXT,
-    avatar_url VARCHAR(500),
+    email        VARCHAR(255) PRIMARY KEY,
+    name         VARCHAR(255),
+    bio          TEXT,
+    avatar_url   VARCHAR(500),
     avatar_color VARCHAR(50) DEFAULT 'av0',
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   )
 `, err => {
   if (err) console.log('❌ Profile table error:', err.message);
@@ -498,6 +481,249 @@ app.get('/profiles', (req, res) => {
   db.query('SELECT email, name, bio, avatar_url, avatar_color FROM user_profiles', (err, result) => {
     if (err) return res.json({ success: false });
     res.json({ success: true, profiles: result });
+  });
+});
+
+// ─── SERVE ADMIN PAGE ───
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend', 'admin.html'));
+});
+
+// ═══════════════════════════════════════════════
+//  ADMIN ROUTES
+// ═══════════════════════════════════════════════
+
+// ── Admin auth middleware ──
+function requireAdmin(req, res, next) {
+  const token = req.headers['authorization'];
+  if (!token) return res.status(401).json({ success: false, message: 'No token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'mysupersecretkey');
+    db.query('SELECT is_admin FROM users WHERE id = ?', [decoded.id], (err, rows) => {
+      if (err || !rows.length || rows[0].is_admin !== 1) {
+        return res.status(403).json({ success: false, message: 'Admin access only' });
+      }
+      req.adminEmail = decoded.email;
+      next();
+    });
+  } catch {
+    res.status(401).json({ success: false, message: 'Invalid token' });
+  }
+}
+
+// ── Stats ──
+
+app.get('/admin/stats/users', requireAdmin, (req, res) => {
+  db.query('SELECT COUNT(*) as count FROM users', (err, rows) => {
+    res.json({ count: err ? 0 : rows[0].count });
+  });
+});
+
+app.get('/admin/stats/groups', requireAdmin, (req, res) => {
+  db.query('SELECT COUNT(*) as count FROM groups_table', (err, rows) => {
+    res.json({ count: err ? 0 : rows[0].count });
+  });
+});
+
+app.get('/admin/stats/messages', requireAdmin, (req, res) => {
+  db.query('SELECT COUNT(*) as count FROM group_messages', (err, rows) => {
+    res.json({ count: err ? 0 : rows[0].count });
+  });
+});
+
+app.get('/admin/stats/issues', requireAdmin, (req, res) => {
+  db.query("SELECT COUNT(*) as count FROM group_messages WHERE type = 'issue'", (err, rows) => {
+    res.json({ count: err ? 0 : rows[0].count });
+  });
+});
+
+// ── Admin Groups ──
+
+app.get('/admin/groups', requireAdmin, (req, res) => {
+  const sql = `
+    SELECT g.*, COUNT(gm.id) as member_count
+    FROM groups_table g
+    LEFT JOIN group_members gm ON g.id = gm.group_id
+    GROUP BY g.id
+    ORDER BY g.created_at DESC
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true, groups: rows });
+  });
+});
+
+app.post('/admin/groups', requireAdmin, (req, res) => {
+  const { name, created_by } = req.body;
+  if (!name) return res.json({ success: false, message: 'Name required' });
+  const creator = created_by || req.adminEmail;
+  db.query(
+    'INSERT INTO groups_table (name, created_by) VALUES (?, ?)',
+    [name, creator],
+    (err, result) => {
+      if (err) return res.json({ success: false, message: err.message });
+      // Auto-add admin as first member
+      db.query('INSERT INTO group_members (group_id, email) VALUES (?, ?)', [result.insertId, creator], () => {});
+      res.json({ success: true, group_id: result.insertId });
+    }
+  );
+});
+
+app.delete('/admin/groups/:id', requireAdmin, (req, res) => {
+  const id = req.params.id;
+  db.query('DELETE FROM group_messages WHERE group_id = ?', [id], (err) => {
+    if (err) return res.json({ success: false, message: err.message });
+    db.query('DELETE FROM group_members WHERE group_id = ?', [id], (err2) => {
+      if (err2) return res.json({ success: false, message: err2.message });
+      db.query('DELETE FROM groups_table WHERE id = ?', [id], (err3) => {
+        if (err3) return res.json({ success: false, message: err3.message });
+        res.json({ success: true });
+      });
+    });
+  });
+});
+
+// ── Admin Members ──
+
+app.get('/admin/groups/:id/members', requireAdmin, (req, res) => {
+  const sql = `
+    SELECT gm.*, g.name as group_name
+    FROM group_members gm
+    JOIN groups_table g ON g.id = gm.group_id
+    WHERE gm.group_id = ?
+    ORDER BY gm.id DESC
+  `;
+  db.query(sql, [req.params.id], (err, rows) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true, members: rows });
+  });
+});
+
+app.post('/admin/groups/:id/members', requireAdmin, (req, res) => {
+  const { email } = req.body;
+  const group_id = req.params.id;
+  if (!email) return res.json({ success: false, message: 'Email required' });
+  db.query('SELECT id FROM users WHERE email = ?', [email], (err, rows) => {
+    if (err) return res.json({ success: false, message: err.message });
+    if (!rows.length) return res.json({ success: false, message: 'User not found with this email' });
+    db.query(
+      'SELECT id FROM group_members WHERE group_id = ? AND email = ?',
+      [group_id, email],
+      (err2, existing) => {
+        if (err2) return res.json({ success: false, message: err2.message });
+        if (existing.length) return res.json({ success: false, message: 'Already a member' });
+        db.query(
+          'INSERT INTO group_members (group_id, email) VALUES (?, ?)',
+          [group_id, email],
+          (err3, result) => {
+            if (err3) return res.json({ success: false, message: err3.message });
+            res.json({ success: true, member_id: result.insertId });
+          }
+        );
+      }
+    );
+  });
+});
+
+app.delete('/admin/members/:id', requireAdmin, (req, res) => {
+  db.query('DELETE FROM group_members WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true });
+  });
+});
+
+// ── Admin Messages / Announcements ──
+
+app.get('/admin/messages', requireAdmin, (req, res) => {
+  const sql = `
+    SELECT gm.*, g.name as group_name
+    FROM group_messages gm
+    LEFT JOIN groups_table g ON g.id = gm.group_id
+    ORDER BY gm.id DESC
+    LIMIT 200
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true, messages: rows });
+  });
+});
+
+app.get('/admin/messages/recent', requireAdmin, (req, res) => {
+  const sql = `
+    SELECT gm.*, g.name as group_name
+    FROM group_messages gm
+    LEFT JOIN groups_table g ON g.id = gm.group_id
+    ORDER BY gm.id DESC
+    LIMIT 10
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true, messages: rows });
+  });
+});
+
+app.post('/admin/messages', requireAdmin, (req, res) => {
+  const { group_id, message, type } = req.body;
+  if (!group_id || !message) return res.json({ success: false, message: 'group_id and message required' });
+  const sender = req.adminEmail;
+  db.query(
+    'INSERT INTO group_messages (group_id, sender, message, type) VALUES (?, ?, ?, ?)',
+    [group_id, sender, message, type || 'text'],
+    (err, result) => {
+      if (err) return res.json({ success: false, message: err.message });
+      // Emit via socket so members see it live
+      io.emit('group-message', {
+        id: result.insertId,
+        groupId: group_id,
+        from: sender,
+        message,
+        type: type || 'text',
+        time: new Date().toISOString()
+      });
+      res.json({ success: true, message_id: result.insertId });
+    }
+  );
+});
+
+app.delete('/admin/messages/:id', requireAdmin, (req, res) => {
+  db.query('DELETE FROM group_messages WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true });
+  });
+});
+
+// PATCH — mark issue as resolved (type → 'update')
+app.patch('/admin/messages/:id/resolve', requireAdmin, (req, res) => {
+  db.query(
+    "UPDATE group_messages SET type = 'update' WHERE id = ?",
+    [req.params.id],
+    (err) => {
+      if (err) return res.json({ success: false, message: err.message });
+      res.json({ success: true });
+    }
+  );
+});
+
+// ── Admin Users ──
+
+app.get('/admin/users', requireAdmin, (req, res) => {
+  db.query('SELECT id, email, is_admin FROM users ORDER BY id DESC', (err, rows) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true, users: rows });
+  });
+});
+
+app.patch('/admin/users/:id/admin', requireAdmin, (req, res) => {
+  db.query('UPDATE users SET is_admin = 1 WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true });
+  });
+});
+
+app.delete('/admin/users/:id', requireAdmin, (req, res) => {
+  db.query('DELETE FROM users WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.json({ success: false, message: err.message });
+    res.json({ success: true });
   });
 });
 
@@ -538,15 +764,9 @@ io.on("connection", (socket) => {
       (err, result) => {
         const msgId = result ? result.insertId : null;
         const payload = { id: msgId, from, message, type, fileUrl, fileName, time: new Date().toISOString() };
-
-        // Echo back to sender (so they get the DB id)
         socket.emit('private-message-echo', payload);
-
-        // Send to receiver
         const receiverSocketId = onlineUsers.get(to);
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit("private-message", payload);
-        }
+        if (receiverSocketId) io.to(receiverSocketId).emit("private-message", payload);
       }
     );
   });
@@ -558,27 +778,18 @@ io.on("connection", (socket) => {
       (err, result) => {
         const msgId = result ? result.insertId : null;
         const payload = { id: msgId, groupId, from, message, type, fileUrl, fileName, time: new Date().toISOString() };
-
-        // Echo to sender
         socket.emit('group-message-echo', payload);
-
-        // Broadcast to group (excluding sender to avoid duplicate)
         socket.broadcast.emit("group-message", payload);
       }
     );
   });
 
-  // ── Delete message (real-time broadcast) ──
   socket.on("delete-message", ({ msgId, deletedFor, to, groupId }) => {
     if (groupId) {
-      // Broadcast to all (group)
       io.emit("message-deleted", { msgId, deletedFor });
     } else if (to) {
-      // Send to receiver only
       const receiverSocketId = onlineUsers.get(to);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("message-deleted", { msgId, deletedFor });
-      }
+      if (receiverSocketId) io.to(receiverSocketId).emit("message-deleted", { msgId, deletedFor });
     }
   });
 
