@@ -68,6 +68,7 @@ db.query(`
     id          INT AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(255) NOT NULL,
     created_by  VARCHAR(255) NOT NULL,
+    photo_url   VARCHAR(500) DEFAULT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `, err => { if (err) console.log('❌ Groups table error:', err.message); else console.log('✅ Groups table ready'); });
@@ -117,7 +118,8 @@ const alterQueries = [
   `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
   `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for TEXT DEFAULT NULL`,
   `ALTER TABLE group_messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
-  `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin TINYINT(1) DEFAULT 0`
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin TINYINT(1) DEFAULT 0`,
+  `ALTER TABLE groups_table ADD COLUMN IF NOT EXISTS photo_url VARCHAR(500) DEFAULT NULL`
 ];
 alterQueries.forEach(q => db.query(q, () => {}));
 
@@ -380,11 +382,11 @@ app.post("/groups", (req, res) => {
   });
 });
 
-// ─── GET MY GROUPS ───
+// ─── GET MY GROUPS (photo_url included) ───
 app.get("/groups/:email", (req, res) => {
   const { email } = req.params;
   db.query(
-    `SELECT g.id, g.name, g.created_by FROM groups_table g
+    `SELECT g.id, g.name, g.created_by, g.photo_url FROM groups_table g
      JOIN group_members gm ON g.id = gm.group_id
      WHERE gm.email = ?`,
     [email],
@@ -395,11 +397,40 @@ app.get("/groups/:email", (req, res) => {
   );
 });
 
+// ─── UPDATE GROUP PHOTO ───
+app.post("/groups/:groupId/photo", (req, res) => {
+  const { photo_url, email } = req.body;
+  const { groupId } = req.params;
+  if (!photo_url) return res.json({ success: false, message: 'photo_url required' });
+  db.query(
+    'UPDATE groups_table SET photo_url = ? WHERE id = ?',
+    [photo_url, groupId],
+    (err) => {
+      if (err) return res.json({ success: false, message: err.message });
+      res.json({ success: true });
+    }
+  );
+});
+
 // ─── GET GROUP MEMBERS ───
 app.get("/groups/:groupId/members", (req, res) => {
   db.query('SELECT email FROM group_members WHERE group_id = ?', [req.params.groupId], (err, result) => {
     if (err) return res.json({ success: false });
     res.json({ success: true, members: result.map(r => r.email) });
+  });
+});
+
+// ─── REMOVE GROUP MEMBER ───
+app.post("/groups/:groupId/members/remove", (req, res) => {
+  const { email, requestedBy } = req.body;
+  const { groupId } = req.params;
+  db.query('SELECT created_by FROM groups_table WHERE id = ?', [groupId], (err, result) => {
+    if (err || !result.length) return res.json({ success: false, message: 'Group not found' });
+    if (result[0].created_by !== requestedBy) return res.json({ success: false, message: 'Only admin can remove members' });
+    db.query('DELETE FROM group_members WHERE group_id = ? AND email = ?', [groupId, email], (err2) => {
+      if (err2) return res.json({ success: false, message: err2.message });
+      res.json({ success: true });
+    });
   });
 });
 
@@ -493,9 +524,7 @@ app.get('/admin', (req, res) => {
 //  ADMIN ROUTES
 // ═══════════════════════════════════════════════
 
-// ── Admin auth middleware ──
 function requireAdmin(req, res, next) {
-  // Support both "Bearer <token>" and raw token formats
   const authHeader = req.headers['authorization'] || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
   if (!token) return res.status(401).json({ success: false, message: 'No token' });
@@ -513,7 +542,6 @@ function requireAdmin(req, res, next) {
   }
 }
 
-// ── Stats ──
 app.get('/admin/stats/users', requireAdmin, (req, res) => {
   db.query('SELECT COUNT(*) as count FROM users', (err, rows) => {
     res.json({ count: err ? 0 : rows[0].count });
@@ -538,7 +566,6 @@ app.get('/admin/stats/issues', requireAdmin, (req, res) => {
   });
 });
 
-// ── Admin Groups ──
 app.get('/admin/groups', requireAdmin, (req, res) => {
   const sql = `
     SELECT g.*, COUNT(gm.id) as member_count
@@ -582,7 +609,6 @@ app.delete('/admin/groups/:id', requireAdmin, (req, res) => {
   });
 });
 
-// ── Admin Members ──
 app.get('/admin/groups/:id/members', requireAdmin, (req, res) => {
   const sql = `
     SELECT gm.*, g.name as group_name
@@ -630,7 +656,6 @@ app.delete('/admin/members/:id', requireAdmin, (req, res) => {
   });
 });
 
-// ── Admin Messages / Announcements ──
 app.get('/admin/messages', requireAdmin, (req, res) => {
   const sql = `
     SELECT gm.*, g.name as group_name
@@ -699,7 +724,6 @@ app.patch('/admin/messages/:id/resolve', requireAdmin, (req, res) => {
   );
 });
 
-// ── Admin Users ──
 app.get('/admin/users', requireAdmin, (req, res) => {
   db.query('SELECT id, email, is_admin FROM users ORDER BY id DESC', (err, rows) => {
     if (err) return res.json({ success: false, message: err.message });
@@ -721,8 +745,6 @@ app.delete('/admin/users/:id', requireAdmin, (req, res) => {
   });
 });
 
-// ── NEW: Make yourself admin by secret key (one-time setup) ──
-// Visit: POST /make-admin  body: { email, secret: "WARD_ADMIN_SECRET" }
 app.post('/make-admin', (req, res) => {
   const { email, secret } = req.body;
   const ADMIN_SECRET = process.env.ADMIN_SECRET || 'WARD_ADMIN_2024';
@@ -747,6 +769,10 @@ io.on("connection", (socket) => {
     onlineUsers.set(email, socket.id);
     io.emit("online-users", Array.from(onlineUsers.keys()));
     console.log("👤 Joined:", email);
+  });
+
+  socket.on("join-group", (groupId) => {
+    socket.join("group_" + groupId);
   });
 
   socket.on("typing", ({ to, from }) => {
