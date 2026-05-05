@@ -227,6 +227,32 @@ body::before {
 @keyframes toastIn { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:translateY(0); } }
 .toast-icon { font-size: 20px; }
 
+/* ── CHECKING OVERLAY ── */
+#checking-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+#checking-overlay.hide { display: none; }
+.check-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.check-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* responsive */
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: repeat(2,1fr); }
@@ -238,6 +264,12 @@ body::before {
 </style>
 </head>
 <body>
+
+<!-- ── CHECKING OVERLAY (admin verify ஆகும் வரை காட்டும்) ── -->
+<div id="checking-overlay">
+  <div class="check-spinner"></div>
+  <div class="check-text">Verifying access...</div>
+</div>
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -439,27 +471,49 @@ function loadSession() {
   // Login time
   document.getElementById('login-time').textContent = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-  // Toast
+  // ✅ Admin check பண்ணி அதுக்கு பிறகு dashboard show பண்ணு
+  checkAdminButton(token, name, method);
+}
+
+// ── ADMIN CHECK ──
+// Admin → dashboard காட்டு + Admin button show பண்ணு
+// Not admin → நேரடியா chat.html க்கு redirect பண்ணு
+// Network error (backend sleeping) → dashboard காட்டு, quietly ignore
+function checkAdminButton(token, name, method) {
+  const overlay = document.getElementById('checking-overlay');
+
+  fetch(SERVER + '/admin/stats/users', {
+    headers: { 'Authorization': 'Bearer ' + token }
+  })
+  .then(res => {
+    if (res.ok) {
+      // ✅ ADMIN — dashboard காட்டு, Admin button show பண்ணு
+      document.getElementById('admin-btn').style.display = 'block';
+      overlay.classList.add('hide');
+      showWelcomeToast(name, method);
+    } else {
+      // ❌ NOT ADMIN (403) — நேரடியா chat க்கு போ
+      window.location.href = 'chat.html';
+    }
+  })
+  .catch(() => {
+    // 🔄 Backend sleeping (network error) — dashboard காட்டு, admin button இல்லாம
+    // Non-admin users backend wake ஆனா தானா redirect ஆகுறாங்க next login-ல
+    overlay.classList.add('hide');
+    showWelcomeToast(name, method);
+  });
+}
+
+// ── WELCOME TOAST ──
+function showWelcomeToast(name, method) {
   const toast = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = `Welcome back, ${name}! Logged in via ${method}.`;
   toast.style.display = 'flex';
-  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(() => toast.style.display = 'none', 500); }, 4000);
-
-  // ✅ Admin button check — backend-ல admin-ஆ verify பண்ணு
-  checkAdminButton(token);
-}
-
-// ✅ Admin button — admin-ஆ இருந்தா மட்டும் show ஆகும்
-function checkAdminButton(token) {
-  fetch(SERVER + '/admin/stats/users', {
-    headers: { 'Authorization': 'Bearer ' + token }
-  }).then(res => {
-    if (res.ok) {
-      document.getElementById('admin-btn').style.display = 'block';
-    }
-  }).catch(() => {
-    // Backend sleeping — quietly ignore
-  });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.5s';
+    setTimeout(() => toast.style.display = 'none', 500);
+  }, 4000);
 }
 
 // ── GET SECURE DATA ──
