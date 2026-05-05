@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,7 +39,7 @@ input {
   margin-bottom:12px;
   border-radius:8px;
   border:1px solid var(--border);
-  background:#0d1117;
+  background:var(--input-bg);
   color:white;
 }
 button {
@@ -74,10 +74,12 @@ button:hover { background:#58a6ff; }
 }
 .link a { color:var(--accent); text-decoration:none; }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 <div class="card">
-  <h2>📝 Register with OTP</h2>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><div style="width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--purple,#a371f7));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;"><span data-app-icon>⚖️</span></div><div><div class="app-name" style="font-size:15px;font-weight:600;" data-app-name>Public Rights</div><div style="font-size:11px;color:var(--muted);font-family:monospace;" data-app-tagline>Secure Portal</div></div></div><h2>📝 Register with OTP</h2>
   <input type="email" id="email" placeholder="Enter email">
   <input type="password" id="password" placeholder="Enter password">
   <button onclick="sendOtp()">Send OTP</button>
@@ -95,6 +97,12 @@ button:hover { background:#58a6ff; }
   <p id="msg"></p>
   <div class="link">
     Already have account? <a href="index.html">Login</a>
+  </div>
+  <div style="display:flex;justify-content:center;margin-top:14px;">
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">Light</span>
+    </button>
   </div>
 </div>
 

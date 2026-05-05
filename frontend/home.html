@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dashboard — YourApp</title>
+<title>Public Rights  — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 <style>
 :root {
   --bg: #0d1117;
@@ -274,8 +276,8 @@ body::before {
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-brand">
-    <div class="nav-icon">🔐</div>
-    <span class="nav-brand-name">YourApp</span>
+    <div class="nav-icon"><span data-app-icon>⚖️</span></div>
+    <span class="nav-brand-name app-name" data-app-name>Public Rights</span>
   </div>
   <div class="nav-right">
     <div class="user-chip">
@@ -291,6 +293,10 @@ body::before {
     <a id="admin-btn" href="admin.html" style="display:none;padding:7px 14px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:8px;color:#a78bfa;font-size:13px;font-weight:600;text-decoration:none;">🏛️ Admin</a>
 
     <a href="chat.html" style="padding:7px 14px;background:rgba(6,214,160,0.12);border:1px solid rgba(6,214,160,0.3);border-radius:8px;color:#06d6a0;font-size:13px;font-weight:600;text-decoration:none;">💬 Chat</a>
+    <button class="theme-toggle" onclick="toggleTheme()" style="margin-right:4px;">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">Light</span>
+    </button>
     <button class="logout-btn" onclick="logout()">Logout</button>
   </div>
 </nav>

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reset Password</title>
 <style>
 body {
-  background:#0d1117;
+  background:var(--input-bg);
   display:flex;
   justify-content:center;
   align-items:center;
@@ -28,7 +28,7 @@ input, button {
   border:none;
 }
 input {
-  background:#0d1117;
+  background:var(--input-bg);
   border:1px solid #30363d;
   color:white;
 }
@@ -47,6 +47,8 @@ button {
 .success { color:#3fb950; }
 .error { color:#f85149; }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 <div class="card">

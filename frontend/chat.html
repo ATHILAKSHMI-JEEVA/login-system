@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>YourApp — Chat</title>
+<title>Public Rights— Chat</title>
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -426,6 +428,44 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 .av5{background:linear-gradient(135deg,#f97316,#f59e0b);}
 .av6{background:linear-gradient(135deg,#6366f1,#3b82f6);}
 .av7{background:linear-gradient(135deg,#14b8a6,#3b82f6);}
+
+/* ── CHAT LIGHT THEME OVERRIDES ── */
+[data-theme="light"] #topbar,
+[data-theme="light"] #left-panel,
+[data-theme="light"] #panel-header,
+[data-theme="light"] #tab-bar {
+  background: #f6f8fa !important;
+  border-color: #d0d7de !important;
+}
+[data-theme="light"] #search-box,
+[data-theme="light"] .room-item {
+  background: #ffffff !important;
+  border-color: #d0d7de !important;
+}
+[data-theme="light"] #chat-area {
+  background: #eef2f5 !important;
+}
+[data-theme="light"] #msg-input-bar {
+  background: #f6f8fa !important;
+  border-color: #d0d7de !important;
+}
+[data-theme="light"] #msg-input {
+  background: #ffffff !important;
+  color: #1f2328 !important;
+  border-color: #d0d7de !important;
+}
+[data-theme="light"] .msg-bubble.me {
+  background: #0969da !important;
+}
+[data-theme="light"] .msg-bubble.them {
+  background: #ffffff !important;
+  color: #1f2328 !important;
+}
+[data-theme="light"] body,
+[data-theme="light"] #topbar-name,
+[data-theme="light"] #panel-header h2 {
+  color: #1f2328 !important;
+}
 </style>
 </head>
 <body>
@@ -474,7 +514,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
 </div>
 
 <div id="topbar">
-  <div class="logo"><div class="logo-dot">💬</div>YourApp</div>
+  <div class="logo"><div class="logo-dot">💬</div><span data-app-name>Public Rights</span></div>
   <div id="topbar-right">
     <div id="topbar-avatar-wrap" onclick="window.location.href='profile.html'" title="Edit Profile">
       <div id="topbar-avatar">?</div>
@@ -482,6 +522,10 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
     </div>
     <span id="topbar-name">-</span>
     <a href="profile.html" class="profile-link">👤 Profile</a>
+    <button class="theme-toggle" onclick="toggleTheme()" style="margin-right:4px;">
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label">Light</span>
+    </button>
     <button id="logout-btn" onclick="logout()">Logout</button>
   </div>
 </div>
@@ -521,7 +565,7 @@ body{font-family:var(--font);color:var(--text);display:flex;flex-direction:colum
     <div id="chat-column">
       <div id="empty-state">
         <div class="empty-icon">💬</div>
-        <h3>YourApp</h3>
+        <h3><span data-app-name>Public Rights</span></h3>
         <p>Send and receive messages without keeping your phone online.</p>
         <div class="encryption-note">🔒 End-to-end encrypted</div>
       </div>
