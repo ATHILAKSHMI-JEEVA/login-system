@@ -113,15 +113,17 @@ db.query(`
   else     console.log("✅ Messages table ready");
 });
 
-// ── Migrate: add columns to existing tables safely ──
+// ── Migrate: add columns safely (ER_DUP_FIELDNAME = already exists, skip) ──
 const alterQueries = [
-  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
-  `ALTER TABLE messages ADD COLUMN IF NOT EXISTS deleted_for TEXT DEFAULT NULL`,
-  `ALTER TABLE group_messages ADD COLUMN IF NOT EXISTS deleted_for_everyone TINYINT(1) DEFAULT 0`,
-  `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin TINYINT(1) DEFAULT 0`,
-  `ALTER TABLE groups_table ADD COLUMN IF NOT EXISTS photo_url VARCHAR(500) DEFAULT NULL`
+  `ALTER TABLE messages ADD COLUMN deleted_for_everyone TINYINT(1) DEFAULT 0`,
+  `ALTER TABLE messages ADD COLUMN deleted_for TEXT DEFAULT NULL`,
+  `ALTER TABLE group_messages ADD COLUMN deleted_for_everyone TINYINT(1) DEFAULT 0`,
+  `ALTER TABLE users ADD COLUMN is_admin TINYINT(1) DEFAULT 0`,
+  `ALTER TABLE groups_table ADD COLUMN photo_url VARCHAR(500) DEFAULT NULL`
 ];
-alterQueries.forEach(q => db.query(q, () => {}));
+alterQueries.forEach(q => db.query(q, (err) => {
+  if (err && err.code !== 'ER_DUP_FIELDNAME') console.log('⚠️ Alter warning:', err.message);
+}));
 
 // ─── Firebase ───
 try {
@@ -382,7 +384,7 @@ app.post("/groups", (req, res) => {
   });
 });
 
-// ─── GET MY GROUPS (photo_url included) ───
+// ─── GET MY GROUPS (with fallback if photo_url column missing) ───
 app.get("/groups/:email", (req, res) => {
   const { email } = req.params;
   db.query(
@@ -391,7 +393,21 @@ app.get("/groups/:email", (req, res) => {
      WHERE gm.email = ?`,
     [email],
     (err, result) => {
-      if (err) return res.json({ success: false });
+      if (err) {
+        console.log('⚠️ photo_url query failed, trying fallback:', err.message);
+        // Fallback without photo_url
+        db.query(
+          `SELECT g.id, g.name, g.created_by FROM groups_table g
+           JOIN group_members gm ON g.id = gm.group_id
+           WHERE gm.email = ?`,
+          [email],
+          (err2, result2) => {
+            if (err2) return res.json({ success: false, error: err2.message });
+            res.json({ success: true, groups: result2.map(g => ({ ...g, photo_url: null })) });
+          }
+        );
+        return;
+      }
       res.json({ success: true, groups: result });
     }
   );
@@ -399,7 +415,7 @@ app.get("/groups/:email", (req, res) => {
 
 // ─── UPDATE GROUP PHOTO ───
 app.post("/groups/:groupId/photo", (req, res) => {
-  const { photo_url, email } = req.body;
+  const { photo_url } = req.body;
   const { groupId } = req.params;
   if (!photo_url) return res.json({ success: false, message: 'photo_url required' });
   db.query(
