@@ -1,83 +1,84 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Profile</title>
+<title>Profile — Public Rules</title>
 <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;600;700;800;900&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --bg: #050810;
-  --s1: #0a0f1e;
-  --s2: #0f1628;
-  --border: #1a2540;
-  --text: #e4ecff;
-  --muted: #3d5280;
-  --soft: #8899bb;
-  --accent: #4f8dff;
-  --green: #00e5a0;
-  --purple: #a78bfa;
-  --red: #ff5f5f;
+  --bg: #050810; --s1: #0a0f1e; --s2: #0f1628; --border: #1a2540;
+  --text: #e4ecff; --muted: #3d5280; --soft: #8899bb;
+  --accent: #4f8dff; --green: #00e5a0; --purple: #a78bfa; --red: #ff5f5f;
   --display: 'Cabinet Grotesk', sans-serif;
   --body: 'Instrument Sans', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f5f7fc; --s1: #ffffff; --s2: #eef2f9; --border: #d4dbe8;
+  --text: #0f1929; --muted: #8a9ab0; --soft: #5a6e8a;
+  --accent: #2563eb; --green: #16a34a; --purple: #7c3aed; --red: #dc2626;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--body);
-  min-height: 100vh;
+  background: var(--bg); color: var(--text); font-family: var(--body);
+  min-height: 100vh; transition: background 0.3s, color 0.3s;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(79,141,255,0.08), transparent),
     radial-gradient(ellipse 40% 30% at 80% 60%, rgba(167,139,250,0.04), transparent);
 }
+[data-theme="light"] body { background-image: none; }
+
+/* ── NAV ── */
 nav {
   position: sticky; top: 0; z-index: 100;
-  height: 60px;
-  display: flex; align-items: center;
+  height: 60px; display: flex; align-items: center;
   padding: 0 24px; gap: 12px;
-  background: rgba(5,8,16,0.8);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(5,8,16,0.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); transition: background 0.3s;
 }
+[data-theme="light"] nav { background: rgba(245,247,252,0.92); }
+
 .nav-back {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--soft);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 16px;
-  text-decoration: none;
-  transition: all 0.2s;
+  width: 36px; height: 36px; border-radius: 10px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--soft); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; text-decoration: none; transition: all 0.2s;
 }
 .nav-back:hover { border-color: var(--accent); color: var(--accent); }
-.nav-title {
-  font-family: var(--display);
-  font-size: 16px; font-weight: 700;
-  letter-spacing: -0.3px;
+.nav-back svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+
+.nav-brand { display:flex; align-items:center; gap:8px; font-family:var(--display); font-size:15px; font-weight:800; letter-spacing:-0.3px; }
+.nav-brand-icon { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent),#8b5cf6); display:flex; align-items:center; justify-content:center; }
+.nav-brand-icon svg { width:14px; height:14px; stroke:#fff; fill:none; stroke-width:2.5; }
+.nav-brand span { color:var(--accent); }
+
+.nav-right { margin-left: auto; display:flex; align-items:center; gap:8px; }
+.theme-btn {
+  width:36px; height:36px; border-radius:10px;
+  border:1px solid var(--border); background:transparent; color:var(--soft);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;
 }
+.theme-btn:hover { border-color:var(--accent); color:var(--accent); }
+.theme-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; }
+
 .nav-save {
-  margin-left: auto;
-  padding: 8px 18px;
-  background: var(--accent);
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-family: var(--body);
-  font-size: 13px; font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
+  padding: 8px 20px; background: var(--accent); border: none;
+  border-radius: 10px; color: #fff; font-family: var(--body);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+  display:flex; align-items:center; gap:7px;
 }
-.nav-save:hover { background: #6ba3ff; }
-.nav-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.nav-save:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.nav-save:disabled { opacity: 0.5; cursor: not-allowed; transform:none; }
+.nav-save svg { width:14px; height:14px; stroke:#fff; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+
+/* ── COVER ── */
 .cover-section {
-  position: relative;
-  height: 180px;
+  position: relative; height: 180px;
   background: linear-gradient(135deg, #0d1a3a 0%, #111827 40%, #0a1628 100%);
   overflow: visible;
 }
+[data-theme="light"] .cover-section { background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 50%, #ede9fe 100%); }
 .cover-gradient {
   position: absolute; inset: 0;
   background: linear-gradient(135deg, rgba(79,141,255,0.2), rgba(167,139,250,0.15), rgba(0,229,160,0.1));
@@ -87,165 +88,131 @@ nav {
   background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
   background-size: 28px 28px;
 }
+
+/* ── AVATAR ── */
 .avatar-section {
-  position: relative;
-  display: flex;
-  padding: 0 24px;
-  margin-top: -54px;
-  margin-bottom: 0;
-  align-items: flex-end;
-  gap: 16px;
-  z-index: 5;
+  position: relative; display: flex; padding: 0 24px;
+  margin-top: -54px; margin-bottom: 0; align-items: flex-end;
+  gap: 16px; z-index: 5;
 }
 .avatar-ring {
-  width: 108px; height: 108px;
-  border-radius: 50%;
-  padding: 3px;
+  width: 108px; height: 108px; border-radius: 50%; padding: 3px;
   background: linear-gradient(135deg, var(--accent), var(--purple), var(--green));
-  cursor: pointer;
-  flex-shrink: 0;
-  position: relative;
+  cursor: pointer; flex-shrink: 0; position: relative;
 }
 .avatar-inner {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  background: var(--s2);
-  border: 4px solid var(--bg);
+  width: 100%; height: 100%; border-radius: 50%;
+  background: var(--s2); border: 4px solid var(--bg);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--display);
-  font-size: 38px; font-weight: 900;
-  overflow: hidden;
-  position: relative;
+  font-family: var(--display); font-size: 38px; font-weight: 900;
+  overflow: hidden; position: relative;
 }
 .avatar-inner img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .avatar-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0.55);
-  border-radius: 50%;
-  display: none;
-  align-items: center; justify-content: center;
-  font-size: 20px;
+  position: absolute; inset: 0; background: rgba(0,0,0,0.55); border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
 }
+.avatar-overlay svg { width:22px; height:22px; stroke:#fff; fill:none; stroke-width:2; }
 .avatar-ring:hover .avatar-overlay { display: flex; }
 .cam-badge {
   position: absolute; bottom: 6px; right: 2px;
-  width: 26px; height: 26px;
-  background: var(--accent);
-  border: 2px solid var(--bg);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; cursor: pointer;
+  width: 28px; height: 28px; background: var(--accent);
+  border: 2px solid var(--bg); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
+.cam-badge svg { width:13px; height:13px; stroke:#fff; fill:none; stroke-width:2; }
 #avatar-input { display: none; }
 .avatar-info { padding-bottom: 8px; }
-.avatar-info h1 {
-  font-family: var(--display);
-  font-size: 22px; font-weight: 800;
-  letter-spacing: -0.5px;
-  line-height: 1.2;
-}
-.avatar-info p { font-size: 13px; color: var(--soft); margin-top: 2px; }
+.avatar-info h1 { font-family:var(--display); font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+.avatar-info p  { font-size:13px; color:var(--soft); margin-top:2px; }
 .online-pill {
   display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(0,229,160,0.1);
-  border: 1px solid rgba(0,229,160,0.2);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px; color: var(--green);
+  background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.2);
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; color: var(--green);
   margin-top: 6px; font-weight: 600;
 }
-.online-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+.online-dot { width:6px; height:6px; background:var(--green); border-radius:50%; }
+
+/* ── STATS ── */
 .stats-row {
-  display: flex; gap: 1px;
-  background: var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  margin: 20px 24px;
+  display:flex; gap:1px; background:var(--border); border-radius:16px;
+  overflow:hidden; margin:20px 24px;
 }
-.stat {
-  flex: 1;
-  background: var(--s1);
-  padding: 16px 12px;
-  text-align: center;
-}
-.stat-num {
-  font-family: var(--display);
-  font-size: 22px; font-weight: 800;
-  color: var(--accent);
-}
-.stat-label { font-size: 10px; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.8px; }
+.stat { flex:1; background:var(--s1); padding:16px 12px; text-align:center; }
+.stat-num { font-family:var(--display); font-size:22px; font-weight:800; color:var(--accent); }
+.stat-label { font-size:10px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:0.8px; }
+
+/* ── SECTIONS ── */
 .section { margin: 0 16px 16px; }
-.section-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 0 8px 12px;
-}
+.section-header { display:flex; align-items:center; gap:10px; padding:0 8px 12px; }
 .section-icon {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
+  width:30px; height:30px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
 }
-.section-title {
-  font-family: var(--display);
-  font-size: 14px; font-weight: 700;
-  letter-spacing: -0.2px;
-}
-.section-body {
-  background: var(--s1);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-}
+.section-icon svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.section-title { font-family:var(--display); font-size:14px; font-weight:700; letter-spacing:-0.2px; }
+.section-body { background:var(--s1); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+
+/* ── LIST ITEM ── */
 .list-item {
-  display: flex; align-items: center;
-  padding: 14px 16px;
-  gap: 14px;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
-  position: relative;
+  display:flex; align-items:center; padding:14px 16px; gap:14px;
+  border-bottom:1px solid var(--border); transition:background 0.15s; position:relative;
 }
-.list-item:last-child { border-bottom: none; }
+.list-item:last-child { border-bottom:none; }
+.list-item:hover { background: rgba(79,141,255,0.04); }
+
+/* ── PROFESSIONAL ICON BOX ── */
 .item-icon {
-  width: 38px; height: 38px;
-  border-radius: 11px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
+  width:40px; height:40px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition: transform 0.2s;
 }
-.item-content { flex: 1; overflow: hidden; }
-.item-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 3px; }
-.item-value { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item-icon svg {
+  width:18px; height:18px; stroke:currentColor; fill:none;
+  stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;
+}
+.list-item:hover .item-icon { transform: scale(1.08); }
+
+.icon-blue   { background:rgba(79,141,255,0.12); color:#4f8dff; }
+.icon-green  { background:rgba(0,229,160,0.10);  color:#00e5a0; }
+.icon-purple { background:rgba(167,139,250,0.12);color:#a78bfa; }
+.icon-teal   { background:rgba(20,184,166,0.12); color:#14b8a6; }
+.icon-amber  { background:rgba(245,158,11,0.12); color:#f59e0b; }
+.icon-rose   { background:rgba(255,95,95,0.10);  color:#ff5f5f; }
+.icon-indigo { background:rgba(99,102,241,0.12); color:#6366f1; }
+.icon-cyan   { background:rgba(6,214,160,0.12);  color:#06d6a0; }
+
+[data-theme="light"] .icon-blue   { background:rgba(37,99,235,0.10); color:#2563eb; }
+[data-theme="light"] .icon-green  { background:rgba(22,163,74,0.10); color:#16a34a; }
+[data-theme="light"] .icon-purple { background:rgba(124,58,237,0.10);color:#7c3aed; }
+[data-theme="light"] .icon-teal   { background:rgba(20,184,166,0.10);color:#0d9488; }
+
+.item-content { flex:1; overflow:hidden; }
+.item-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:3px; }
+.item-value { font-size:14px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .item-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-size: 14px;
-  font-family: var(--body);
-  outline: none;
-  padding: 0;
+  width:100%; background:transparent; border:none; color:var(--text);
+  font-size:14px; font-family:var(--body); outline:none; padding:0;
 }
-.item-input::placeholder { color: var(--muted); }
-textarea.item-input { resize: none; height: 56px; line-height: 1.5; }
-.item-arrow { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+.item-input::placeholder { color:var(--muted); }
+textarea.item-input { resize:none; height:56px; line-height:1.5; }
+.item-arrow { color:var(--muted); flex-shrink:0; display:flex; align-items:center; }
+.item-arrow svg { width:14px; height:14px; stroke:var(--muted); fill:none; stroke-width:2; }
+
+/* ── COLOR SECTION ── */
 .color-section {
-  padding: 16px;
-  background: var(--s1);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  padding:16px; background:var(--s1);
+  border:1px solid var(--border); border-radius:16px;
 }
-.color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.color-hint { font-size:12px; color:var(--muted); }
+.color-row  { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
 .color-dot {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: all 0.2s;
-  position: relative;
+  width:42px; height:42px; border-radius:50%; cursor:pointer;
+  border:3px solid transparent; transition:all 0.2s; position:relative;
 }
-.color-dot:hover { transform: scale(1.1); }
-.color-dot.selected { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px var(--accent); }
-.color-dot.selected::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; font-weight:700; }
+.color-dot:hover { transform:scale(1.1); }
+.color-dot.selected { border-color:#fff; transform:scale(1.1); box-shadow:0 0 0 2px var(--accent); }
+.color-dot.selected::after { content:''; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/18px no-repeat; border-radius:50%; }
 .c0{background:linear-gradient(135deg,#3b82f6,#8b5cf6);}
 .c1{background:linear-gradient(135deg,#06d6a0,#3b82f6);}
 .c2{background:linear-gradient(135deg,#f59e0b,#ef4444);}
@@ -254,48 +221,56 @@ textarea.item-input { resize: none; height: 56px; line-height: 1.5; }
 .c5{background:linear-gradient(135deg,#f97316,#f59e0b);}
 .c6{background:linear-gradient(135deg,#6366f1,#3b82f6);}
 .c7{background:linear-gradient(135deg,#14b8a6,#3b82f6);}
-.danger-section { margin: 0 16px 32px; }
+
+/* ── DANGER ── */
+.danger-section { margin:0 16px 32px; }
 .danger-btn {
-  width: 100%;
-  padding: 14px;
-  background: rgba(255,95,95,0.08);
-  border: 1px solid rgba(255,95,95,0.2);
-  border-radius: 14px;
-  color: var(--red);
-  font-family: var(--body);
-  font-size: 14px; font-weight: 600;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: all 0.2s;
+  width:100%; padding:14px; background:rgba(255,95,95,0.08);
+  border:1px solid rgba(255,95,95,0.2); border-radius:14px;
+  color:var(--red); font-family:var(--body); font-size:14px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
+  transition:all 0.2s;
 }
-.danger-btn:hover { background: rgba(255,95,95,0.15); }
+.danger-btn:hover { background:rgba(255,95,95,0.15); border-color:var(--red); }
+.danger-btn svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+/* ── TOAST ── */
 .toast {
-  position: fixed;
-  bottom: 28px; left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--green);
-  color: #050810;
-  padding: 11px 22px;
-  border-radius: 40px;
-  font-weight: 700; font-size: 13px;
-  font-family: var(--display);
-  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  z-index: 999;
-  display: flex; align-items: center; gap: 8px;
-  white-space: nowrap;
+  position:fixed; bottom:28px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--s1); border:1px solid rgba(0,229,160,0.3); color:var(--text);
+  padding:11px 22px; border-radius:40px; font-weight:700; font-size:13px;
+  font-family:var(--display); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  z-index:999; display:flex; align-items:center; gap:8px; white-space:nowrap;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
 }
-.toast.show { transform: translateX(-50%) translateY(0); }
-@media (max-width: 480px) { .avatar-info h1 { font-size: 18px; } }
+.toast.show { transform:translateX(-50%) translateY(0); }
+.toast-icon svg { width:16px; height:16px; stroke:var(--green); fill:none; stroke-width:2.5; }
 </style>
-<link rel="stylesheet" href="theme.css">
-<script src="theme.js"></script>
 </head>
 <body>
 
 <nav>
-  <a href="chat.html" class="nav-back">←</a>
-  <span class="nav-title">Profile</span>
-  <button class="nav-save" id="nav-save" onclick="saveProfile()">Save</button>
+  <a href="chat.html" class="nav-back" title="Back to Chat">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </a>
+  <div class="nav-brand">
+    <div class="nav-brand-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    Public <span>Rules</span>
+  </div>
+  <div class="nav-right">
+    <!-- Theme Toggle -->
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+      <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg id="theme-icon-sun"  viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <button class="nav-save" id="nav-save" onclick="saveProfile()">
+      <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save
+    </button>
+  </div>
 </nav>
 
 <div class="cover-section">
@@ -307,14 +282,18 @@ textarea.item-input { resize: none; height: 56px; line-height: 1.5; }
   <div class="avatar-ring" onclick="document.getElementById('avatar-input').click()">
     <div class="avatar-inner" id="avatar-inner">
       <span id="avatar-letter">?</span>
-      <div class="avatar-overlay">📷</div>
+      <div class="avatar-overlay">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
     </div>
-    <div class="cam-badge">📷</div>
+    <div class="cam-badge">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
   </div>
   <input type="file" id="avatar-input" accept="image/*"/>
   <div class="avatar-info">
     <h1 id="hero-name">Loading...</h1>
-    <p id="hero-email">-</p>
+    <p id="hero-email">—</p>
     <div class="online-pill"><div class="online-dot"></div> Active Now</div>
   </div>
 </div>
@@ -322,94 +301,222 @@ textarea.item-input { resize: none; height: 56px; line-height: 1.5; }
 <div class="stats-row">
   <div class="stat"><div class="stat-num" id="s-msg">✓</div><div class="stat-label">Messages</div></div>
   <div class="stat"><div class="stat-num" id="s-grp">0</div><div class="stat-label">Groups</div></div>
-  <div class="stat"><div class="stat-num" id="s-since">May</div><div class="stat-label">Joined</div></div>
+  <div class="stat"><div class="stat-num" id="s-since">Now</div><div class="stat-label">Joined</div></div>
 </div>
 
+<!-- ── ABOUT ── -->
 <div class="section">
   <div class="section-header">
-    <div class="section-icon" style="background:rgba(79,141,255,0.12);color:var(--accent);">👤</div>
+    <div class="section-icon" style="background:rgba(79,141,255,0.12);color:var(--accent);">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
     <span class="section-title">About</span>
   </div>
   <div class="section-body">
+
+    <!-- Display Name -->
     <div class="list-item">
-      <div class="item-icon" style="background:rgba(79,141,255,0.1);">✏️</div>
+      <div class="item-icon icon-blue">
+        <svg viewBox="0 0 24 24">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
       <div class="item-content">
         <div class="item-label">Display Name</div>
-        <input type="text" id="name-input" class="item-input" placeholder="Your name..."/>
+        <input type="text" id="name-input" class="item-input" placeholder="Enter your name..."/>
       </div>
     </div>
+
+    <!-- Bio -->
     <div class="list-item">
-      <div class="item-icon" style="background:rgba(0,229,160,0.1);">💬</div>
+      <div class="item-icon icon-green">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
       <div class="item-content">
         <div class="item-label">Bio</div>
-        <textarea id="bio-input" class="item-input" placeholder="Hey there! I am using YourApp."></textarea>
+        <textarea id="bio-input" class="item-input" placeholder="Hey there! I am using Public Rules."></textarea>
       </div>
     </div>
+
+    <!-- Email -->
     <div class="list-item">
-      <div class="item-icon" style="background:rgba(167,139,250,0.1);">📧</div>
+      <div class="item-icon icon-purple">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </div>
       <div class="item-content">
         <div class="item-label">Email</div>
-        <div class="item-value" id="email-display">-</div>
+        <div class="item-value" id="email-display">—</div>
       </div>
     </div>
+
   </div>
 </div>
 
+<!-- ── AVATAR COLOR ── -->
 <div class="section">
   <div class="section-header">
-    <div class="section-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24;">🎨</div>
+    <div class="section-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24;">
+      <svg viewBox="0 0 24 24">
+        <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+        <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+      </svg>
+    </div>
     <span class="section-title">Avatar Color</span>
   </div>
   <div class="color-section">
-    <div style="font-size:12px;color:var(--muted);">Choose your default avatar color when no photo is set</div>
+    <div class="color-hint">Choose your default avatar color when no photo is set</div>
     <div class="color-row" id="color-grid"></div>
   </div>
 </div>
 
+<!-- ── PRIVACY ── -->
 <div class="section">
   <div class="section-header">
-    <div class="section-icon" style="background:rgba(167,139,250,0.12);color:var(--purple);">🔒</div>
+    <div class="section-icon" style="background:rgba(167,139,250,0.12);color:var(--purple);">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
     <span class="section-title">Privacy</span>
   </div>
   <div class="section-body">
+
+    <!-- Last Seen -->
     <div class="list-item">
-      <div class="item-icon" style="background:rgba(0,229,160,0.1);">👁️</div>
+      <div class="item-icon icon-teal">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
       <div class="item-content">
         <div class="item-label">Last Seen</div>
         <div class="item-value">Everyone</div>
       </div>
-      <span class="item-arrow">›</span>
+      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
     </div>
+
+    <!-- Profile Photo -->
     <div class="list-item">
-      <div class="item-icon" style="background:rgba(79,141,255,0.1);">🖼️</div>
+      <div class="item-icon icon-indigo">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
       <div class="item-content">
         <div class="item-label">Profile Photo</div>
         <div class="item-value">Everyone</div>
       </div>
-      <span class="item-arrow">›</span>
+      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
     </div>
+
+    <!-- Status -->
+    <div class="list-item">
+      <div class="item-icon icon-amber">
+        <svg viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </div>
+      <div class="item-content">
+        <div class="item-label">About Visibility</div>
+        <div class="item-value">My Contacts</div>
+      </div>
+      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </div>
+
   </div>
 </div>
 
-<div class="danger-section">
-  <button class="danger-btn" onclick="doLogout()">🚪 Log Out</button>
+<!-- ── NOTIFICATIONS ── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:rgba(6,214,160,0.12);color:#06d6a0;">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <span class="section-title">Notifications</span>
+  </div>
+  <div class="section-body">
+
+    <div class="list-item">
+      <div class="item-icon icon-cyan">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="item-content">
+        <div class="item-label">Message Alerts</div>
+        <div class="item-value">Enabled</div>
+      </div>
+      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </div>
+
+    <div class="list-item">
+      <div class="item-icon icon-blue">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="item-content">
+        <div class="item-label">Group Alerts</div>
+        <div class="item-value">Enabled</div>
+      </div>
+      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </div>
+
+  </div>
 </div>
 
-<div class="toast" id="toast">✅ Profile saved!</div>
+<!-- ── LOGOUT ── -->
+<div class="danger-section">
+  <button class="danger-btn" onclick="doLogout()">
+    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Log Out
+  </button>
+</div>
+
+<div class="toast" id="toast">
+  <span class="toast-icon">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </span>
+  <span id="toast-msg">Profile saved!</span>
+</div>
 
 <script>
-const SERVER = window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'
+// ── THEME ──
+(function() {
+  const saved = localStorage.getItem('pr-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  updateThemeIcon(saved);
+})();
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('pr-theme', next);
+  updateThemeIcon(next);
+}
+function updateThemeIcon(theme) {
+  document.getElementById('theme-icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
+  document.getElementById('theme-icon-sun').style.display  = theme === 'light' ? 'block' : 'none';
+}
+
+// ── APP ──
+const SERVER = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:5000'
   : 'https://login-system-backend-i3b8.onrender.com';
 
 const myEmail = localStorage.getItem('email');
 if (!myEmail) window.location.href = 'index.html';
 
-document.getElementById('hero-email').textContent = myEmail || '';
+document.getElementById('hero-email').textContent  = myEmail || '';
 document.getElementById('email-display').textContent = myEmail || '';
 
 let selectedColor = 'av0';
-let newAvatarFile = null;
+let newAvatarFile  = null;
 const colorMap = {
   av0:'linear-gradient(135deg,#3b82f6,#8b5cf6)',
   av1:'linear-gradient(135deg,#06d6a0,#3b82f6)',
@@ -422,14 +529,14 @@ const colorMap = {
 };
 
 // Color grid
-var grid = document.getElementById('color-grid');
-for (var i = 0; i < 8; i++) {
+const grid = document.getElementById('color-grid');
+for (let i = 0; i < 8; i++) {
   (function(idx) {
-    var d = document.createElement('div');
+    const d = document.createElement('div');
     d.className = 'color-dot c' + idx + (idx === 0 ? ' selected' : '');
     d.dataset.color = 'av' + idx;
     d.onclick = function() {
-      document.querySelectorAll('.color-dot').forEach(function(x) { x.classList.remove('selected'); });
+      document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('selected'));
       d.classList.add('selected');
       selectedColor = 'av' + idx;
       if (!newAvatarFile && !document.getElementById('avatar-inner').querySelector('img')) {
@@ -440,115 +547,93 @@ for (var i = 0; i < 8; i++) {
   })(i);
 }
 
-// Avatar preview when file selected
+// Avatar file select
 document.getElementById('avatar-input').onchange = function() {
-  var file = this.files[0];
+  const file = this.files[0];
   if (!file) return;
   newAvatarFile = file;
-  var r = new FileReader();
-  r.onload = function(e) {
+  const r = new FileReader();
+  r.onload = e => {
     document.getElementById('avatar-inner').innerHTML =
-      '<img src="' + e.target.result + '" alt=""/><div class="avatar-overlay">📷</div>';
+      `<img src="${e.target.result}" alt=""/><div class="avatar-overlay"><svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" fill="none" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`;
   };
   r.readAsDataURL(file);
 };
 
-// Load existing profile
+// Load profile
 async function loadProfile() {
   try {
-    var res  = await fetch(SERVER + '/profile/' + encodeURIComponent(myEmail));
-    var data = await res.json();
+    const res  = await fetch(SERVER + '/profile/' + encodeURIComponent(myEmail));
+    const data = await res.json();
     if (data.success) {
-      var p = data.profile;
-      var name = p.name || myEmail.split('@')[0];
+      const p = data.profile;
+      const name = p.name || myEmail.split('@')[0];
       document.getElementById('hero-name').textContent = name;
       document.getElementById('name-input').value = p.name || '';
       document.getElementById('bio-input').value  = p.bio  || '';
-
       if (p.avatar_url) {
         document.getElementById('avatar-inner').innerHTML =
-          '<img src="' + p.avatar_url + '" alt=""/><div class="avatar-overlay">📷</div>';
+          `<img src="${p.avatar_url}" alt=""/><div class="avatar-overlay"><svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" fill="none" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>`;
       } else {
         selectedColor = p.avatar_color || 'av0';
         document.getElementById('avatar-inner').style.background = colorMap[selectedColor];
         document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
-        var idx = parseInt(selectedColor.replace('av', ''));
-        document.querySelectorAll('.color-dot').forEach(function(d, i) {
-          d.classList.toggle('selected', i === idx);
-        });
+        const idx = parseInt(selectedColor.replace('av', ''));
+        document.querySelectorAll('.color-dot').forEach((d, i) => d.classList.toggle('selected', i === idx));
       }
     } else {
       document.getElementById('avatar-inner').style.background = colorMap['av0'];
       document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
       document.getElementById('hero-name').textContent = myEmail.split('@')[0];
     }
-  } catch(e) {
+  } catch {
     document.getElementById('avatar-inner').style.background = colorMap['av0'];
     document.getElementById('avatar-letter').textContent = myEmail[0].toUpperCase();
     document.getElementById('hero-name').textContent = myEmail.split('@')[0];
   }
-
   try {
-    var r2  = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
-    var d2  = await r2.json();
+    const r2 = await fetch(SERVER + '/groups/' + encodeURIComponent(myEmail));
+    const d2 = await r2.json();
     document.getElementById('s-grp').textContent = d2.success ? d2.groups.length : 0;
-  } catch(e) {}
+  } catch {}
 }
 
 // Save profile
 async function saveProfile() {
-  var btn = document.getElementById('nav-save');
+  const btn = document.getElementById('nav-save');
   btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  var fd = new FormData();
+  btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Saving...`;
+  const fd = new FormData();
   fd.append('email', myEmail);
-  fd.append('name', document.getElementById('name-input').value.trim());
-  fd.append('bio',  document.getElementById('bio-input').value.trim());
+  fd.append('name',  document.getElementById('name-input').value.trim());
+  fd.append('bio',   document.getElementById('bio-input').value.trim());
   fd.append('avatar_color', selectedColor);
   if (newAvatarFile) fd.append('avatar', newAvatarFile);
-
   try {
-    var res  = await fetch(SERVER + '/profile', { method: 'POST', body: fd });
-    var data = await res.json();
-
+    const res  = await fetch(SERVER + '/profile', { method:'POST', body:fd });
+    const data = await res.json();
     if (data.success) {
-      var name = document.getElementById('name-input').value.trim();
-      var displayName = name || myEmail.split('@')[0];
-
-      // ✅ localStorage update — chat.html இதை use பண்ணும்
+      const name = document.getElementById('name-input').value.trim();
+      const displayName = name || myEmail.split('@')[0];
       localStorage.setItem('userName', displayName);
-      if (data.avatar_url) {
-        localStorage.setItem('userAvatar', data.avatar_url);
-      } else {
-        localStorage.removeItem('userAvatar');
-        localStorage.setItem('userAvatarColor', selectedColor);
-      }
-
+      if (data.avatar_url) localStorage.setItem('userAvatar', data.avatar_url);
+      else { localStorage.removeItem('userAvatar'); localStorage.setItem('userAvatarColor', selectedColor); }
       document.getElementById('hero-name').textContent = displayName;
-      showToast('✅ Profile saved!');
-    } else {
-      showToast('❌ Save failed!');
-    }
-  } catch(e) {
-    showToast('❌ Network error!');
-  }
-
+      showToast('Profile saved successfully!');
+    } else { showToast('Save failed — try again'); }
+  } catch { showToast('Network error'); }
   btn.disabled = false;
-  btn.textContent = 'Save';
+  btn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="#fff" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save`;
 }
 
 function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
   t.classList.add('show');
-  setTimeout(function() { t.classList.remove('show'); }, 3000);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-function doLogout() {
-  localStorage.clear();
-  window.location.href = 'index.html';
-}
+function doLogout() { localStorage.clear(); window.location.href = 'index.html'; }
 
 loadProfile();
 </script>
