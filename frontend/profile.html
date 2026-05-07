@@ -196,8 +196,70 @@ nav {
 }
 .item-input::placeholder { color:var(--muted); }
 textarea.item-input { resize:none; height:56px; line-height:1.5; }
-.item-arrow { color:var(--muted); flex-shrink:0; display:flex; align-items:center; }
+.item-arrow { color:var(--muted); flex-shrink:0; display:flex; align-items:center; transition: transform 0.25s; }
 .item-arrow svg { width:14px; height:14px; stroke:var(--muted); fill:none; stroke-width:2; }
+.list-item.clickable { cursor:pointer; }
+.list-item.clickable:active { background: rgba(79,141,255,0.08); }
+
+/* ── DROPDOWN SHEET ── */
+.option-sheet-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:200; opacity:0; pointer-events:none;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(4px);
+}
+.option-sheet-backdrop.open { opacity:1; pointer-events:all; }
+
+.option-sheet {
+  position:fixed; bottom:0; left:0; right:0;
+  background: var(--s1); border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  z-index:201; padding: 0 0 32px;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+}
+.option-sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width:40px; height:4px; background:var(--border2,#2a3a5a);
+  border-radius:2px; margin:12px auto 0;
+}
+.sheet-title {
+  font-family:var(--display); font-size:13px; font-weight:700;
+  color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;
+  padding:16px 20px 8px;
+}
+.sheet-option {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px; cursor:pointer; transition:background 0.15s;
+  font-size:15px; font-weight:500; color:var(--text);
+}
+.sheet-option:hover { background: rgba(79,141,255,0.06); }
+.sheet-option .check-icon {
+  width:20px; height:20px; border-radius:50%;
+  border:2px solid var(--border); display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all 0.15s;
+}
+.sheet-option.active .check-icon {
+  background:var(--accent); border-color:var(--accent);
+}
+.sheet-option .check-icon svg { width:11px; height:11px; stroke:#fff; fill:none; stroke-width:3; display:none; }
+.sheet-option.active .check-icon svg { display:block; }
+
+/* Toggle switch */
+.toggle-switch {
+  width:44px; height:24px; border-radius:12px;
+  background:var(--border); position:relative; cursor:pointer;
+  transition:background 0.25s; flex-shrink:0;
+}
+.toggle-switch.on { background:var(--accent); }
+.toggle-switch::after {
+  content:''; position:absolute; top:3px; left:3px;
+  width:18px; height:18px; border-radius:50%; background:#fff;
+  transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+.toggle-switch.on::after { transform:translateX(20px); }
 
 /* ── COLOR SECTION ── */
 .color-section {
@@ -387,47 +449,37 @@ textarea.item-input { resize:none; height:56px; line-height:1.5; }
   <div class="section-body">
 
     <!-- Last Seen -->
-    <div class="list-item">
+    <div class="list-item clickable" onclick="openSheet('last-seen')">
       <div class="item-icon icon-teal">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
       <div class="item-content">
         <div class="item-label">Last Seen</div>
-        <div class="item-value">Everyone</div>
+        <div class="item-value" id="val-last-seen">Everyone</div>
       </div>
       <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
     </div>
 
     <!-- Profile Photo -->
-    <div class="list-item">
+    <div class="list-item clickable" onclick="openSheet('profile-photo')">
       <div class="item-icon icon-indigo">
-        <svg viewBox="0 0 24 24">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21 15 16 10 5 21"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
       </div>
       <div class="item-content">
         <div class="item-label">Profile Photo</div>
-        <div class="item-value">Everyone</div>
+        <div class="item-value" id="val-profile-photo">Everyone</div>
       </div>
       <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
     </div>
 
-    <!-- Status -->
-    <div class="list-item">
+    <!-- About Visibility -->
+    <div class="list-item clickable" onclick="openSheet('about-visibility')">
       <div class="item-icon icon-amber">
-        <svg viewBox="0 0 24 24">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </div>
       <div class="item-content">
         <div class="item-label">About Visibility</div>
-        <div class="item-value">My Contacts</div>
+        <div class="item-value" id="val-about-visibility">My Contacts</div>
       </div>
       <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
     </div>
@@ -451,9 +503,9 @@ textarea.item-input { resize:none; height:56px; line-height:1.5; }
       </div>
       <div class="item-content">
         <div class="item-label">Message Alerts</div>
-        <div class="item-value">Enabled</div>
+        <div class="item-value" id="val-msg-alerts">Enabled</div>
       </div>
-      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
+      <div class="toggle-switch on" id="toggle-msg" onclick="toggleNotif('msg')"></div>
     </div>
 
     <div class="list-item">
@@ -462,9 +514,9 @@ textarea.item-input { resize:none; height:56px; line-height:1.5; }
       </div>
       <div class="item-content">
         <div class="item-label">Group Alerts</div>
-        <div class="item-value">Enabled</div>
+        <div class="item-value" id="val-grp-alerts">Enabled</div>
       </div>
-      <span class="item-arrow"><svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--muted)" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span>
+      <div class="toggle-switch on" id="toggle-grp" onclick="toggleNotif('grp')"></div>
     </div>
 
   </div>
@@ -635,7 +687,63 @@ function showToast(msg) {
 
 function doLogout() { localStorage.clear(); window.location.href = 'index.html'; }
 
+// ── OPTION SHEET ──
+const sheetConfig = {
+  'last-seen':        { title: 'Last Seen',        key: 'val-last-seen',        options: ['Everyone', 'My Contacts', 'Nobody'] },
+  'profile-photo':    { title: 'Profile Photo',    key: 'val-profile-photo',    options: ['Everyone', 'My Contacts', 'Nobody'] },
+  'about-visibility': { title: 'About Visibility', key: 'val-about-visibility', options: ['Everyone', 'My Contacts', 'Nobody'] },
+};
+let activeSheet = null;
+
+function openSheet(type) {
+  const cfg = sheetConfig[type];
+  if (!cfg) return;
+  activeSheet = type;
+  const current = document.getElementById(cfg.key).textContent;
+  document.getElementById('sheet-title').textContent = cfg.title;
+  const container = document.getElementById('sheet-options');
+  container.innerHTML = cfg.options.map(opt => {
+    const isActive = opt === current ? 'active' : '';
+    return `<div class="sheet-option ${isActive}" onclick="selectOption('${type}','${opt}')"><span>${opt}</span><div class="check-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>`;
+  }).join('');
+  document.getElementById('sheet-backdrop').classList.add('open');
+  document.getElementById('option-sheet').classList.add('open');
+}
+
+function selectOption(type, value) {
+  const cfg = sheetConfig[type];
+  document.getElementById(cfg.key).textContent = value;
+  document.querySelectorAll('#sheet-options .sheet-option').forEach(el => {
+    el.classList.toggle('active', el.querySelector('span').textContent === value);
+  });
+  setTimeout(closeSheet, 220);
+  showToast(cfg.title + ' set to ' + value);
+}
+
+function closeSheet() {
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  document.getElementById('option-sheet').classList.remove('open');
+  activeSheet = null;
+}
+
+// ── NOTIFICATION TOGGLES ──
+const notifState = { msg: true, grp: true };
+function toggleNotif(key) {
+  notifState[key] = !notifState[key];
+  const on = notifState[key];
+  document.getElementById('toggle-' + key).classList.toggle('on', on);
+  document.getElementById('val-' + key + '-alerts').textContent = on ? 'Enabled' : 'Disabled';
+  showToast((key === 'msg' ? 'Message' : 'Group') + ' Alerts ' + (on ? 'enabled' : 'disabled'));
+}
+
 loadProfile();
 </script>
+
+<div class="option-sheet-backdrop" id="sheet-backdrop" onclick="closeSheet()"></div>
+<div class="option-sheet" id="option-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheet-title">Choose</div>
+  <div id="sheet-options"></div>
+</div>
 </body>
 </html>
